@@ -73,7 +73,7 @@ public class TelegramaDownloader {
                 BufferedImage.TYPE_INT_RGB);
 
         jpegImage.createGraphics().drawImage(tiffImage, 0, 0, Color.WHITE, null);
-        // Write the image as JPEG to disk
+
         ImageIO.write(jpegImage, "jpg", telegramaJpg.getFile());
 
         TextReader.read(telegramaJpg.getFile());

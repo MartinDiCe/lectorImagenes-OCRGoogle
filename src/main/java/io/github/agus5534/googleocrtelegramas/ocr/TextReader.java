@@ -19,7 +19,6 @@ public class TextReader {
 
         Image img = Image.newBuilder().setContent(imgBytes).build();
         Feature feat = Feature.newBuilder().setType(Feature.Type.TEXT_DETECTION).build();
-
         AnnotateImageRequest request =
                 AnnotateImageRequest.newBuilder().addFeatures(feat).setImage(img).build();
         requests.add(request);
