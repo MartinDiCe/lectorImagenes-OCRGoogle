@@ -15,6 +15,7 @@ build/
 out/
 !**/src/main/**/out/
 !**/src/test/**/out/
+healthdark-8fc5255e90a7.json
 
 ### Eclipse ###
 .apt_generated

@@ -3,9 +3,12 @@ package io.github.agus5534.googleocrtelegramas;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import io.github.agus5534.googleocrtelegramas.ocr.TextReader;
 import io.github.agus5534.googleocrtelegramas.utils.FileCreator;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -59,6 +62,21 @@ public class TelegramaDownloader {
         Files.write(tiffBin.getFile().toPath(), decodedTelegrama());
 
         ImageIO.write(ImageIO.read(tiffBin.getFile()), "tiff", telegrama.getFile());
+
+
+        FileCreator telegramaJpg = new FileCreator(mesaFolder.getFile(), "telegrama-jpg.jpg");
+
+        BufferedImage tiffImage = ImageIO.read(telegrama.getFile());
+        BufferedImage jpegImage = new BufferedImage(
+                tiffImage.getWidth(),
+                tiffImage.getHeight(),
+                BufferedImage.TYPE_INT_RGB);
+
+        jpegImage.createGraphics().drawImage(tiffImage, 0, 0, Color.WHITE, null);
+        // Write the image as JPEG to disk
+        ImageIO.write(jpegImage, "jpg", telegramaJpg.getFile());
+
+        TextReader.read(telegramaJpg.getFile());
 
     }
 
