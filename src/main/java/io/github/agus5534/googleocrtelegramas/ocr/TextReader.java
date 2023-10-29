@@ -5,14 +5,11 @@ import com.google.protobuf.ByteString;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class TextReader {
-
-
     public static void read(File tiff) throws IOException {
         List<AnnotateImageRequest> requests = new ArrayList<>();
         ByteString imgBytes = ByteString.readFrom(new FileInputStream(tiff));
@@ -27,6 +24,9 @@ public class TextReader {
             BatchAnnotateImagesResponse response = client.batchAnnotateImages(requests);
             List<AnnotateImageResponse> responses = response.getResponsesList();
 
+            String mesaText = "MESA"; // Texto a buscar
+            String otroTexto = "00634/9"; // Otro texto a buscar
+
             for (AnnotateImageResponse res : responses) {
                 if (res.hasError()) {
                     System.out.format("Error: %s%n", res.getError().getMessage());
@@ -34,10 +34,29 @@ public class TextReader {
                 }
 
                 for (EntityAnnotation annotation : res.getTextAnnotationsList()) {
-                    System.out.format("Text: %s%n", annotation.getDescription());
-                    System.out.format("Position : %s%n", annotation.getBoundingPoly());
+                    String text = annotation.getDescription().toUpperCase(); // Convertir a mayúsculas para hacer coincidir
+                    BoundingPoly boundingPoly = annotation.getBoundingPoly();
+
+                    if (text.contains(mesaText)) {
+                        System.out.format("MESA Text: %s%n", text);
+                        showPolygon(boundingPoly);
+                    }
+
+                    if (text.contains(otroTexto)) {
+                        System.out.format("Otro Texto: %s%n", text);
+                        showPolygon(boundingPoly);
+                    }
                 }
             }
+        }
+    }
+
+    // Función para mostrar los vértices de un polígono
+    private static void showPolygon(BoundingPoly boundingPoly) {
+        List<Vertex> vertices = boundingPoly.getVerticesList();
+        System.out.println("Polígono:");
+        for (Vertex vertex : vertices) {
+            System.out.format("Vertex X: %d, Y: %d%n", vertex.getX(), vertex.getY());
         }
     }
 }
