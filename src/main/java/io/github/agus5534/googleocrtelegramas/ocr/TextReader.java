@@ -2,32 +2,34 @@ package io.github.agus5534.googleocrtelegramas.ocr;
 
 import com.google.cloud.vision.v1.*;
 import com.google.protobuf.ByteString;
+import io.github.agus5534.googleocrtelegramas.models.Position;
+import io.github.agus5534.googleocrtelegramas.utils.KeywordSearchConfig;
+import io.github.agus5534.googleocrtelegramas.utils.PolygonUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 public class TextReader {
 
-
-    public static void read(File tiff) throws IOException {
+    public static void read(File tiff, KeywordSearchConfig config) throws IOException {
         List<AnnotateImageRequest> requests = new ArrayList<>();
         ByteString imgBytes = ByteString.readFrom(new FileInputStream(tiff));
 
         Image img = Image.newBuilder().setContent(imgBytes).build();
         Feature feat = Feature.newBuilder().setType(Feature.Type.TEXT_DETECTION).build();
-        AnnotateImageRequest request =
-                AnnotateImageRequest.newBuilder().addFeatures(feat).setImage(img).build();
+        AnnotateImageRequest request = AnnotateImageRequest.newBuilder().addFeatures(feat).setImage(img).build();
         requests.add(request);
-
 
         try (ImageAnnotatorClient client = ImageAnnotatorClient.create()) {
             BatchAnnotateImagesResponse response = client.batchAnnotateImages(requests);
             List<AnnotateImageResponse> responses = response.getResponsesList();
+
+            String keyword = config.getKeyword();
+            BoundingPoly keywordPosition = null;
+            BoundingPoly searchPosition = null;
 
             for (AnnotateImageResponse res : responses) {
                 if (res.hasError()) {
@@ -35,53 +37,85 @@ public class TextReader {
                     return;
                 }
 
-                HashMap<List<List<Integer>>, EntityAnnotation> test = new HashMap<>();
-
                 for (EntityAnnotation annotation : res.getTextAnnotationsList()) {
-
+                    String text = annotation.getDescription();
                     BoundingPoly boundingPoly = annotation.getBoundingPoly();
-                    List<Vertex> vertices = boundingPoly.getVerticesList();
 
-                    List<List<Integer>> vertexList = new ArrayList<>();
-
-                    for(var vertex : vertices) {
-                        vertexList.add(List.of(vertex.getX(), vertex.getY()));
+                    if (text.contains(keyword)) {
+                        keywordPosition = boundingPoly;
+                    } else if (keywordPosition != null) {
+                        // Determina la posición según la configuración
+                        if (config.getSearchPosition() == Position.RIGHT) {
+                            if (PolygonUtils.isRightOf(boundingPoly, keywordPosition)) {
+                                searchPosition = boundingPoly;
+                                break;
+                            }
+                        } else if (config.getSearchPosition() == Position.LEFT) {
+                            if (PolygonUtils.isLeftOf(boundingPoly, keywordPosition)) {
+                                searchPosition = boundingPoly;
+                                break;
+                            }
+                        } else if (config.getSearchPosition() == Position.ABOVE) {
+                            if (PolygonUtils.isAbove(boundingPoly, keywordPosition)) {
+                                searchPosition = boundingPoly;
+                                break;
+                            }
+                        } else if (config.getSearchPosition() == Position.BELOW) {
+                            if (PolygonUtils.isBelow(boundingPoly, keywordPosition)) {
+                                searchPosition = boundingPoly;
+                                break;
+                            }
+                        }
                     }
-
-                    test.put(vertexList, annotation);
-
-                    /*System.out.format("Text: %s%n", annotation.getDescription());
-                    System.out.format("Position : %s%n", annotation.getBoundingPoly());*/
                 }
+            }
 
-                test.forEach((lists, entityAnnotation) -> {
-                    var isVotoLLA = lists.equals(
-                            List.of(
-                                    List.of(1245, 928),
-                                    List.of(1348, 935),
-                                    List.of(1345, 969),
-                                    List.of(1243, 962)
-                            )
-                    );
+            AnnotateImageResponse res = null;
 
-                    var isVotoUXP = lists.equals(
-                            List.of(
-                                    List.of(1232, 999),
-                                    List.of(1340, 1002),
-                                    List.of(1339, 1046),
-                                    List.of(1231, 1043)
-                            )
-                    );
+            for (AnnotateImageResponse resp : responses) {
+                res = resp;
+                if (resp.hasError()) {
+                    System.out.format("Error: %s%n", resp.getError().getMessage());
+                    return;
+                }
+            }
 
-                    if(isVotoLLA) {
-                        System.out.println("Votos LLA: " + entityAnnotation.getDescription());
+            if (searchPosition != null) {
+                System.out.println("Keyword: " + config.getKeyword());
+                System.out.println("Posición de búsqueda: " + config.getSearchPosition());
+
+                PolygonUtils.showPolygon(keywordPosition);
+
+                if (res != null) {
+                    for (EntityAnnotation annotation : res.getTextAnnotationsList()) {
+                        if (PolygonUtils.arePolygonsEqual(annotation.getBoundingPoly(), searchPosition)) {
+                            String textInSearchPosition = annotation.getDescription();
+                            System.out.println("Texto dentro del polígono: " + textInSearchPosition);
+
+                            PolygonUtils.showPolygon(searchPosition);
+
+                            /*Busqueda de todos los strings
+                            for (EntityAnnotation annotations : res.getTextAnnotationsList()) {
+                                String text = annotations.getDescription();
+                                BoundingPoly boundingPoly = annotations.getBoundingPoly();
+
+                                PolygonUtils.showPolygon(boundingPoly);
+                            }*/
+
+                        }
                     }
+                } else {
+                    System.out.println("No se pudo obtener el texto dentro del polígono.");
 
-                    if(isVotoUXP) {
-                        System.out.println("Votos UxP: " + entityAnnotation.getDescription());
+                    PolygonUtils.showPolygon(searchPosition);
+
                     }
-                });
+            } else {
+                System.out.println("La posición deseada no se encontró en la imagen.");
             }
         }
     }
+
+
+
 }
