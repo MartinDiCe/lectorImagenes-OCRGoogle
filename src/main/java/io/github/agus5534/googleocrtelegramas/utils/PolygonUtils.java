@@ -51,4 +51,40 @@ public class PolygonUtils {
         return maxY1 < minY2;
     }
 
+    public static boolean isLeftOf(BoundingPoly polygon1, BoundingPoly polygon2) {
+        List<Vertex> vertices1 = polygon1.getVerticesList();
+        List<Vertex> vertices2 = polygon2.getVerticesList();
+
+        int minX1 = Integer.MAX_VALUE;
+        int maxX2 = Integer.MIN_VALUE;
+
+        for (Vertex vertex : vertices1) {
+            minX1 = Math.min(minX1, vertex.getX());
+        }
+
+        for (Vertex vertex : vertices2) {
+            maxX2 = Math.max(maxX2, vertex.getX());
+        }
+
+        return minX1 < maxX2;
+    }
+
+    public static boolean isAbove(BoundingPoly polygon1, BoundingPoly polygon2) {
+        List<Vertex> vertices1 = polygon1.getVerticesList();
+        List<Vertex> vertices2 = polygon2.getVerticesList();
+
+        int minY1 = Integer.MAX_VALUE;
+        int maxY2 = Integer.MIN_VALUE;
+
+        for (Vertex vertex : vertices1) {
+            minY1 = Math.min(minY1, vertex.getY());
+        }
+
+        for (Vertex vertex : vertices2) {
+            maxY2 = Math.max(maxY2, vertex.getY());
+        }
+
+        return minY1 > maxY2;
+    }
+
 }
