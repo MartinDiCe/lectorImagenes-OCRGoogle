@@ -34,7 +34,7 @@ public class TextReader {
                 }
 
                 for (EntityAnnotation annotation : res.getTextAnnotationsList()) {
-                    String text = annotation.getDescription().toUpperCase(); // Convertir a mayúsculas para hacer coincidir
+                    String text = annotation.getDescription();
                     BoundingPoly boundingPoly = annotation.getBoundingPoly();
 
                     if (text.contains(mesaText)) {
