@@ -2,6 +2,8 @@ package io.github.agus5534.googleocrtelegramas.ocr;
 
 import com.google.cloud.vision.v1.*;
 import com.google.protobuf.ByteString;
+import io.github.agus5534.googleocrtelegramas.models.Position;
+import io.github.agus5534.googleocrtelegramas.utils.KeywordSearchConfig;
 import io.github.agus5534.googleocrtelegramas.utils.PolygonUtils;
 
 import java.io.File;
@@ -12,8 +14,7 @@ import java.util.List;
 
 public class TextReader {
 
-    public static void read(File tiff) throws IOException {
-
+    public static void read(File tiff, KeywordSearchConfig config) throws IOException {
         List<AnnotateImageRequest> requests = new ArrayList<>();
         ByteString imgBytes = ByteString.readFrom(new FileInputStream(tiff));
 
@@ -26,13 +27,9 @@ public class TextReader {
             BatchAnnotateImagesResponse response = client.batchAnnotateImages(requests);
             List<AnnotateImageResponse> responses = response.getResponsesList();
 
-            String mesaText = "MESA";
-            String mesaID = "00680/6";
-
-            BoundingPoly firstRightPolygon = null;
-            BoundingPoly firstBelowPolygon = null;
-            String textInFirstRightPolygon = "";
-            String textInFirstBelowPolygon = "";
+            String keyword = config.getKeyword();
+            BoundingPoly keywordPosition = null;
+            BoundingPoly searchPosition = null;
 
             for (AnnotateImageResponse res : responses) {
                 if (res.hasError()) {
@@ -40,57 +37,68 @@ public class TextReader {
                     return;
                 }
 
-                BoundingPoly polygonMesa = null;
-
                 for (EntityAnnotation annotation : res.getTextAnnotationsList()) {
                     String text = annotation.getDescription();
                     BoundingPoly boundingPoly = annotation.getBoundingPoly();
 
-                    if (text.contains(mesaText)) {
-                        polygonMesa = boundingPoly;
-                    }
-
-                    if (polygonMesa != null) {
-                        if (!text.contains(mesaText)) {
-                            boolean rightOf = PolygonUtils.isRightOf(polygonMesa, boundingPoly);
-                            boolean below = PolygonUtils.isBelow(polygonMesa, boundingPoly);
-
-                            if (rightOf && firstRightPolygon == null) {
-                                firstRightPolygon = boundingPoly;
-                                textInFirstRightPolygon = text;
-                            } else if (below && firstBelowPolygon == null) {
-                                firstBelowPolygon = boundingPoly;
-                                textInFirstBelowPolygon = text;
+                    if (text.contains(keyword)) {
+                        keywordPosition = boundingPoly;
+                    } else if (keywordPosition != null) {
+                        // Determina la posición según la configuración
+                        if (config.getSearchPosition() == Position.RIGHT) {
+                            if (PolygonUtils.isRightOf(boundingPoly, keywordPosition)) {
+                                searchPosition = boundingPoly;
+                                break;
+                            }
+                        } else if (config.getSearchPosition() == Position.LEFT) {
+                            if (PolygonUtils.isLeftOf(boundingPoly, keywordPosition)) {
+                                searchPosition = boundingPoly;
+                                break;
+                            }
+                        } else if (config.getSearchPosition() == Position.ABOVE) {
+                            if (PolygonUtils.isAbove(boundingPoly, keywordPosition)) {
+                                searchPosition = boundingPoly;
+                                break;
+                            }
+                        } else if (config.getSearchPosition() == Position.BELOW) {
+                            if (PolygonUtils.isBelow(boundingPoly, keywordPosition)) {
+                                searchPosition = boundingPoly;
+                                break;
                             }
                         }
-
-                        if (text.contains(mesaID)) {
-                            System.out.format("MesaId: %s%n", text);
-                            PolygonUtils.showPolygon(boundingPoly);
-                        }
-
-                        if (firstRightPolygon != null && firstBelowPolygon != null) {
-                            break;
-                        }
                     }
                 }
+            }
 
-                if (firstRightPolygon != null && firstBelowPolygon != null) {
-                    break;
+            AnnotateImageResponse res = null;
+
+            for (AnnotateImageResponse resp : responses) {
+                res = resp;
+                if (resp.hasError()) {
+                    System.out.format("Error: %s%n", resp.getError().getMessage());
+                    return;
                 }
             }
 
-            if (firstRightPolygon != null) {
-                System.out.println("Primer polígono a la derecha de MESA:");
-                PolygonUtils.showPolygon(firstRightPolygon);
-                System.out.println("Texto en el primer polígono a la derecha: " + textInFirstRightPolygon);
+            if (searchPosition != null) {
+                System.out.println("Se encontró la posición deseada:");
+                PolygonUtils.showPolygon(searchPosition);
+
+                if (res != null) {
+                    for (EntityAnnotation annotation : res.getTextAnnotationsList()) {
+                        if (PolygonUtils.arePolygonsEqual(annotation.getBoundingPoly(), searchPosition)) {
+                            String textInSearchPosition = annotation.getDescription();
+                            System.out.println("Texto dentro del polígono: " + textInSearchPosition);
+                        }
+                    }
+                } else {
+                    System.out.println("No se pudo obtener el texto dentro del polígono.");
+                }
+            } else {
+                System.out.println("La posición deseada no se encontró en la imagen.");
             }
 
-            if (firstBelowPolygon != null) {
-                System.out.println("Primer polígono debajo de MESA:");
-                PolygonUtils.showPolygon(firstBelowPolygon);
-                System.out.println("Texto en el primer polígono debajo: " + textInFirstBelowPolygon);
-            }
         }
     }
+
 }

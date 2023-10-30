@@ -1,9 +1,12 @@
 package io.github.agus5534.googleocrtelegramas.utils;
 
 import com.google.cloud.vision.v1.BoundingPoly;
+import com.google.cloud.vision.v1.EntityAnnotation;
 import com.google.cloud.vision.v1.Vertex;
 
 import java.util.List;
+
+import static io.github.agus5534.googleocrtelegramas.models.Position.*;
 
 public class PolygonUtils {
 
@@ -85,6 +88,54 @@ public class PolygonUtils {
         }
 
         return minY1 > maxY2;
+    }
+
+    public static BoundingPoly findPositionForKeyword(List<EntityAnnotation> annotations, KeywordSearchConfig config, BoundingPoly referencePoly) {
+        for (EntityAnnotation annotation : annotations) {
+            String text = annotation.getDescription();
+            if (text.contains(config.getKeyword())) {
+                switch (config.getSearchPosition()) {
+                    case RIGHT:
+                        if (isRightOf(annotation.getBoundingPoly(), config.getReferencePoly(referencePoly))) {
+                            return annotation.getBoundingPoly();
+                        }
+                        break;
+                    case BELOW:
+                        if (isBelow(annotation.getBoundingPoly(), config.getReferencePoly(referencePoly))) {
+                            return annotation.getBoundingPoly();
+                        }
+                        break;
+                    case LEFT:
+                        if (isLeftOf(annotation.getBoundingPoly(), config.getReferencePoly(referencePoly))) {
+                            return annotation.getBoundingPoly();
+                        }
+                        break;
+                    case ABOVE:
+                        if (isAbove(annotation.getBoundingPoly(), config.getReferencePoly(referencePoly))) {
+                            return annotation.getBoundingPoly();
+                        }
+                        break;
+                }
+            }
+        }
+        return null;
+    }
+
+    public static boolean arePolygonsEqual(BoundingPoly poly1, BoundingPoly poly2) {
+        if (poly1.getVerticesCount() != poly2.getVerticesCount()) {
+            return false;
+        }
+
+        for (int i = 0; i < poly1.getVerticesCount(); i++) {
+            Vertex vertex1 = poly1.getVertices(i);
+            Vertex vertex2 = poly2.getVertices(i);
+
+            if (vertex1.getX() != vertex2.getX() || vertex1.getY() != vertex2.getY()) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
 }
