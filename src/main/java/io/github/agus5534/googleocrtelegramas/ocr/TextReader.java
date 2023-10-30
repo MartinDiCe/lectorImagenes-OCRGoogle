@@ -81,24 +81,41 @@ public class TextReader {
             }
 
             if (searchPosition != null) {
-                System.out.println("Se encontró la posición deseada:");
-                PolygonUtils.showPolygon(searchPosition);
+                System.out.println("Keyword: " + config.getKeyword());
+                System.out.println("Posición de búsqueda: " + config.getSearchPosition());
+
+                PolygonUtils.showPolygon(keywordPosition);
 
                 if (res != null) {
                     for (EntityAnnotation annotation : res.getTextAnnotationsList()) {
                         if (PolygonUtils.arePolygonsEqual(annotation.getBoundingPoly(), searchPosition)) {
                             String textInSearchPosition = annotation.getDescription();
                             System.out.println("Texto dentro del polígono: " + textInSearchPosition);
+
+                            PolygonUtils.showPolygon(searchPosition);
+
+                            /*Busqueda de todos los strings
+                            for (EntityAnnotation annotations : res.getTextAnnotationsList()) {
+                                String text = annotations.getDescription();
+                                BoundingPoly boundingPoly = annotations.getBoundingPoly();
+
+                                PolygonUtils.showPolygon(boundingPoly);
+                            }*/
+
                         }
                     }
                 } else {
                     System.out.println("No se pudo obtener el texto dentro del polígono.");
-                }
+
+                    PolygonUtils.showPolygon(searchPosition);
+
+                    }
             } else {
                 System.out.println("La posición deseada no se encontró en la imagen.");
             }
-
         }
     }
+
+
 
 }

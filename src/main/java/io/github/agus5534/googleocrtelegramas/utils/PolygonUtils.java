@@ -6,8 +6,6 @@ import com.google.cloud.vision.v1.Vertex;
 
 import java.util.List;
 
-import static io.github.agus5534.googleocrtelegramas.models.Position.*;
-
 public class PolygonUtils {
 
     public static void showPolygon(BoundingPoly boundingPoly) {
@@ -36,7 +34,7 @@ public class PolygonUtils {
         return maxX1 < minX2;
     }
 
-    public static boolean isBelow(BoundingPoly polygon1, BoundingPoly polygon2) {
+    public static boolean isAbove(BoundingPoly polygon1, BoundingPoly polygon2) {
         List<Vertex> vertices1 = polygon1.getVerticesList();
         List<Vertex> vertices2 = polygon2.getVerticesList();
 
@@ -72,7 +70,7 @@ public class PolygonUtils {
         return minX1 < maxX2;
     }
 
-    public static boolean isAbove(BoundingPoly polygon1, BoundingPoly polygon2) {
+    public static boolean isBelow(BoundingPoly polygon1, BoundingPoly polygon2) {
         List<Vertex> vertices1 = polygon1.getVerticesList();
         List<Vertex> vertices2 = polygon2.getVerticesList();
 
@@ -100,8 +98,8 @@ public class PolygonUtils {
                             return annotation.getBoundingPoly();
                         }
                         break;
-                    case BELOW:
-                        if (isBelow(annotation.getBoundingPoly(), config.getReferencePoly(referencePoly))) {
+                    case ABOVE:
+                        if (isAbove(annotation.getBoundingPoly(), config.getReferencePoly(referencePoly))) {
                             return annotation.getBoundingPoly();
                         }
                         break;
@@ -110,8 +108,8 @@ public class PolygonUtils {
                             return annotation.getBoundingPoly();
                         }
                         break;
-                    case ABOVE:
-                        if (isAbove(annotation.getBoundingPoly(), config.getReferencePoly(referencePoly))) {
+                    case BELOW:
+                        if (isBelow(annotation.getBoundingPoly(), config.getReferencePoly(referencePoly))) {
                             return annotation.getBoundingPoly();
                         }
                         break;
