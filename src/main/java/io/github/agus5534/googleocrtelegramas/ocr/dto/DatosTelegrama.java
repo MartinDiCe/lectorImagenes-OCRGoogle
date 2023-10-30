@@ -75,4 +75,5 @@ public class DatosTelegrama {
     public void setEsValido(Boolean esValido) {
         this.esValido = esValido;
     }
+
 }

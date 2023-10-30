@@ -25,4 +25,5 @@ public class Conteo {
     public void setUp(Integer up) {
         this.up = up;
     }
+
 }
