@@ -5,23 +5,19 @@ import com.google.protobuf.ByteString;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 public class TextReader {
-
-
     public static void read(File tiff) throws IOException {
         List<AnnotateImageRequest> requests = new ArrayList<>();
         ByteString imgBytes = ByteString.readFrom(new FileInputStream(tiff));
 
         Image img = Image.newBuilder().setContent(imgBytes).build();
         Feature feat = Feature.newBuilder().setType(Feature.Type.TEXT_DETECTION).build();
-        AnnotateImageRequest request =
-                AnnotateImageRequest.newBuilder().addFeatures(feat).setImage(img).build();
+        AnnotateImageRequest request = AnnotateImageRequest.newBuilder().addFeatures(feat).setImage(img).build();
         requests.add(request);
 
 
@@ -29,59 +25,118 @@ public class TextReader {
             BatchAnnotateImagesResponse response = client.batchAnnotateImages(requests);
             List<AnnotateImageResponse> responses = response.getResponsesList();
 
+            String mesaText = "MESA";
+            String mesaID = "00634/9";
+
+            BoundingPoly firstRightPolygon = null;
+            BoundingPoly firstBelowPolygon = null;
+            String textInFirstRightPolygon = "";
+            String textInFirstBelowPolygon = "";
+
             for (AnnotateImageResponse res : responses) {
+                var data = res.getFullTextAnnotation().getText().split("\n");
+
                 if (res.hasError()) {
                     System.out.format("Error: %s%n", res.getError().getMessage());
                     return;
                 }
 
-                HashMap<List<List<Integer>>, EntityAnnotation> test = new HashMap<>();
+                BoundingPoly polygonMesa = null;
 
                 for (EntityAnnotation annotation : res.getTextAnnotationsList()) {
-
+                    String text = annotation.getDescription();
                     BoundingPoly boundingPoly = annotation.getBoundingPoly();
-                    List<Vertex> vertices = boundingPoly.getVerticesList();
 
-                    List<List<Integer>> vertexList = new ArrayList<>();
-
-                    for(var vertex : vertices) {
-                        vertexList.add(List.of(vertex.getX(), vertex.getY()));
+                    if (text.contains(mesaText)) {
+                        polygonMesa = boundingPoly;
                     }
 
-                    test.put(vertexList, annotation);
+                    if (polygonMesa != null) {
+                        if (!text.contains(mesaText)) {
+                            boolean rightOf = isRightOf(polygonMesa, boundingPoly);
+                            boolean below = isBelow(polygonMesa, boundingPoly);
 
-                    /*System.out.format("Text: %s%n", annotation.getDescription());
-                    System.out.format("Position : %s%n", annotation.getBoundingPoly());*/
+                            if (rightOf && firstRightPolygon == null) {
+                                firstRightPolygon = boundingPoly;
+                                textInFirstRightPolygon = text;
+                            } else if (below && firstBelowPolygon == null) {
+                                firstBelowPolygon = boundingPoly;
+                                textInFirstBelowPolygon = text;
+                            }
+                        }
+
+                        if (text.contains(mesaID)) {
+                            System.out.format("Poligono de idMesa para compararar: %s%n", text);
+                            showPolygon(boundingPoly);
+                        }
+
+                        if (firstRightPolygon != null && firstBelowPolygon != null) {
+                            break;
+                        }
+                    }
                 }
 
-                test.forEach((lists, entityAnnotation) -> {
-                    var isVotoLLA = lists.equals(
-                            List.of(
-                                    List.of(1245, 928),
-                                    List.of(1348, 935),
-                                    List.of(1345, 969),
-                                    List.of(1243, 962)
-                            )
-                    );
+                if (firstRightPolygon != null && firstBelowPolygon != null) {
+                    break;
 
-                    var isVotoUXP = lists.equals(
-                            List.of(
-                                    List.of(1232, 999),
-                                    List.of(1340, 1002),
-                                    List.of(1339, 1046),
-                                    List.of(1231, 1043)
-                            )
-                    );
+                }
 
-                    if(isVotoLLA) {
-                        System.out.println("Votos LLA: " + entityAnnotation.getDescription());
-                    }
+            if (firstRightPolygon != null) {
+                System.out.println("Primer polígono a la derecha de MESA:");
+                showPolygon(firstRightPolygon);
+                System.out.println("Texto en el primer polígono a la derecha: " + textInFirstRightPolygon);
+            }
 
-                    if(isVotoUXP) {
-                        System.out.println("Votos UxP: " + entityAnnotation.getDescription());
-                    }
-                });
+            if (firstBelowPolygon != null) {
+                System.out.println("Primer polígono debajo de MESA:");
+                showPolygon(firstBelowPolygon);
+                System.out.println("Texto en el primer polígono debajo: " + textInFirstBelowPolygon);
             }
         }
     }
+
+    private static void showPolygon(BoundingPoly boundingPoly) {
+        List<Vertex> vertices = boundingPoly.getVerticesList();
+        System.out.println("Polígono:");
+        for (Vertex vertex : vertices) {
+            System.out.format("Vertex X: %d, Y: %d%n", vertex.getX(), vertex.getY());
+        }
+    }
+
+    private static boolean isRightOf(BoundingPoly polygon1, BoundingPoly polygon2) {
+        List<Vertex> vertices1 = polygon1.getVerticesList();
+        List<Vertex> vertices2 = polygon2.getVerticesList();
+
+        int maxX1 = Integer.MIN_VALUE;
+        int minX2 = Integer.MAX_VALUE;
+
+        for (Vertex vertex : vertices1) {
+            maxX1 = Math.max(maxX1, vertex.getX());
+        }
+
+        for (Vertex vertex : vertices2) {
+            minX2 = Math.min(minX2, vertex.getX());
+        }
+
+        return maxX1 < minX2;
+    }
+
+    private static boolean isBelow(BoundingPoly polygon1, BoundingPoly polygon2) {
+        List<Vertex> vertices1 = polygon1.getVerticesList();
+        List<Vertex> vertices2 = polygon2.getVerticesList();
+
+        int maxY1 = Integer.MIN_VALUE;
+        int minY2 = Integer.MAX_VALUE;
+
+        for (Vertex vertex : vertices1) {
+            maxY1 = Math.max(maxY1, vertex.getY());
+        }
+
+        for (Vertex vertex : vertices2) {
+            minY2 = Math.min(minY2, vertex.getY());
+        }
+
+        return maxY1 < minY2;
+    }
 }
+
