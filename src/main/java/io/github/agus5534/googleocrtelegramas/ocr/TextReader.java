@@ -26,7 +26,14 @@ public class TextReader {
             String mesaText = "MESA";
             String mesaID = "00634/9";
 
+            BoundingPoly firstRightPolygon = null;
+            BoundingPoly firstBelowPolygon = null;
+            String textInFirstRightPolygon = "";
+            String textInFirstBelowPolygon = "";
+
             for (AnnotateImageResponse res : responses) {
+                var data = res.getFullTextAnnotation().getText().split("\n");
+
                 if (res.hasError()) {
                     System.out.format("Error: %s%n", res.getError().getMessage());
                     return;
@@ -47,21 +54,41 @@ public class TextReader {
                             boolean rightOf = isRightOf(polygonMesa, boundingPoly);
                             boolean below = isBelow(polygonMesa, boundingPoly);
 
-                            if (rightOf && !below) {
-                                System.out.println("Texto a la derecha de MESA: " + text);
-                                showPolygon(boundingPoly);
-                            } else if (!rightOf && below) {
-                                System.out.println("Texto debajo de MESA: " + text);
-                                showPolygon(boundingPoly);
+                            if (rightOf && firstRightPolygon == null) {
+                                firstRightPolygon = boundingPoly;
+                                textInFirstRightPolygon = text;
+                            } else if (below && firstBelowPolygon == null) {
+                                firstBelowPolygon = boundingPoly;
+                                textInFirstBelowPolygon = text;
                             }
                         }
 
                         if (text.contains(mesaID)) {
-                            System.out.format("Otro Texto: %s%n", text);
+                            System.out.format("Poligono de idMesa para compararar: %s%n", text);
                             showPolygon(boundingPoly);
+                        }
+
+                        if (firstRightPolygon != null && firstBelowPolygon != null) {
+                            break;
                         }
                     }
                 }
+
+                if (firstRightPolygon != null && firstBelowPolygon != null) {
+                    break;
+                }
+            }
+
+            if (firstRightPolygon != null) {
+                System.out.println("Primer polígono a la derecha de MESA:");
+                showPolygon(firstRightPolygon);
+                System.out.println("Texto en el primer polígono a la derecha: " + textInFirstRightPolygon);
+            }
+
+            if (firstBelowPolygon != null) {
+                System.out.println("Primer polígono debajo de MESA:");
+                showPolygon(firstBelowPolygon);
+                System.out.println("Texto en el primer polígono debajo: " + textInFirstBelowPolygon);
             }
         }
     }
