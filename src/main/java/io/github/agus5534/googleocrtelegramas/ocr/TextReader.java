@@ -7,7 +7,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 public class TextReader {
@@ -19,7 +18,6 @@ public class TextReader {
         Feature feat = Feature.newBuilder().setType(Feature.Type.TEXT_DETECTION).build();
         AnnotateImageRequest request = AnnotateImageRequest.newBuilder().addFeatures(feat).setImage(img).build();
         requests.add(request);
-
 
         try (ImageAnnotatorClient client = ImageAnnotatorClient.create()) {
             BatchAnnotateImagesResponse response = client.batchAnnotateImages(requests);
@@ -34,8 +32,6 @@ public class TextReader {
             String textInFirstBelowPolygon = "";
 
             for (AnnotateImageResponse res : responses) {
-                var data = res.getFullTextAnnotation().getText().split("\n");
-
                 if (res.hasError()) {
                     System.out.format("Error: %s%n", res.getError().getMessage());
                     return;
@@ -66,20 +62,20 @@ public class TextReader {
                         }
 
                         if (text.contains(mesaID)) {
-                            System.out.format("Poligono de idMesa para compararar: %s%n", text);
+                            System.out.format("Otro Texto: %s%n", text);
                             showPolygon(boundingPoly);
                         }
 
                         if (firstRightPolygon != null && firstBelowPolygon != null) {
-                            break;
+                            break; // Termina si se encontraron ambos polígonos
                         }
                     }
                 }
 
                 if (firstRightPolygon != null && firstBelowPolygon != null) {
-                    break;
-
+                    break; // Termina si se encontraron ambos polígonos
                 }
+            }
 
             if (firstRightPolygon != null) {
                 System.out.println("Primer polígono a la derecha de MESA:");
@@ -139,4 +135,3 @@ public class TextReader {
         return maxY1 < minY2;
     }
 }
-
