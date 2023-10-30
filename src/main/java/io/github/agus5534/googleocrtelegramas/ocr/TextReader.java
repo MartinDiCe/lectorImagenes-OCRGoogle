@@ -2,6 +2,7 @@ package io.github.agus5534.googleocrtelegramas.ocr;
 
 import com.google.cloud.vision.v1.*;
 import com.google.protobuf.ByteString;
+import io.github.agus5534.googleocrtelegramas.utils.PolygonUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -10,7 +11,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TextReader {
+
     public static void read(File tiff) throws IOException {
+
         List<AnnotateImageRequest> requests = new ArrayList<>();
         ByteString imgBytes = ByteString.readFrom(new FileInputStream(tiff));
 
@@ -24,7 +27,7 @@ public class TextReader {
             List<AnnotateImageResponse> responses = response.getResponsesList();
 
             String mesaText = "MESA";
-            String mesaID = "00634/9";
+            String mesaID = "00680/6";
 
             BoundingPoly firstRightPolygon = null;
             BoundingPoly firstBelowPolygon = null;
@@ -49,8 +52,8 @@ public class TextReader {
 
                     if (polygonMesa != null) {
                         if (!text.contains(mesaText)) {
-                            boolean rightOf = isRightOf(polygonMesa, boundingPoly);
-                            boolean below = isBelow(polygonMesa, boundingPoly);
+                            boolean rightOf = PolygonUtils.isRightOf(polygonMesa, boundingPoly);
+                            boolean below = PolygonUtils.isBelow(polygonMesa, boundingPoly);
 
                             if (rightOf && firstRightPolygon == null) {
                                 firstRightPolygon = boundingPoly;
@@ -62,76 +65,32 @@ public class TextReader {
                         }
 
                         if (text.contains(mesaID)) {
-                            System.out.format("Otro Texto: %s%n", text);
-                            showPolygon(boundingPoly);
+                            System.out.format("MesaId: %s%n", text);
+                            PolygonUtils.showPolygon(boundingPoly);
                         }
 
                         if (firstRightPolygon != null && firstBelowPolygon != null) {
-                            break; // Termina si se encontraron ambos polígonos
+                            break;
                         }
                     }
                 }
 
                 if (firstRightPolygon != null && firstBelowPolygon != null) {
-                    break; // Termina si se encontraron ambos polígonos
+                    break;
                 }
             }
 
             if (firstRightPolygon != null) {
                 System.out.println("Primer polígono a la derecha de MESA:");
-                showPolygon(firstRightPolygon);
+                PolygonUtils.showPolygon(firstRightPolygon);
                 System.out.println("Texto en el primer polígono a la derecha: " + textInFirstRightPolygon);
             }
 
             if (firstBelowPolygon != null) {
                 System.out.println("Primer polígono debajo de MESA:");
-                showPolygon(firstBelowPolygon);
+                PolygonUtils.showPolygon(firstBelowPolygon);
                 System.out.println("Texto en el primer polígono debajo: " + textInFirstBelowPolygon);
             }
         }
-    }
-
-    private static void showPolygon(BoundingPoly boundingPoly) {
-        List<Vertex> vertices = boundingPoly.getVerticesList();
-        System.out.println("Polígono:");
-        for (Vertex vertex : vertices) {
-            System.out.format("Vertex X: %d, Y: %d%n", vertex.getX(), vertex.getY());
-        }
-    }
-
-    private static boolean isRightOf(BoundingPoly polygon1, BoundingPoly polygon2) {
-        List<Vertex> vertices1 = polygon1.getVerticesList();
-        List<Vertex> vertices2 = polygon2.getVerticesList();
-
-        int maxX1 = Integer.MIN_VALUE;
-        int minX2 = Integer.MAX_VALUE;
-
-        for (Vertex vertex : vertices1) {
-            maxX1 = Math.max(maxX1, vertex.getX());
-        }
-
-        for (Vertex vertex : vertices2) {
-            minX2 = Math.min(minX2, vertex.getX());
-        }
-
-        return maxX1 < minX2;
-    }
-
-    private static boolean isBelow(BoundingPoly polygon1, BoundingPoly polygon2) {
-        List<Vertex> vertices1 = polygon1.getVerticesList();
-        List<Vertex> vertices2 = polygon2.getVerticesList();
-
-        int maxY1 = Integer.MIN_VALUE;
-        int minY2 = Integer.MAX_VALUE;
-
-        for (Vertex vertex : vertices1) {
-            maxY1 = Math.max(maxY1, vertex.getY());
-        }
-
-        for (Vertex vertex : vertices2) {
-            minY2 = Math.min(minY2, vertex.getY());
-        }
-
-        return maxY1 < minY2;
     }
 }
