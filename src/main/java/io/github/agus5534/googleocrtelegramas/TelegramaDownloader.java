@@ -58,7 +58,7 @@ public class TelegramaDownloader {
 
         ImageIO.write(jpegImage, "jpg", telegramaJpg.getFile());
 
-        KeywordSearchConfig config = new KeywordSearchConfig("VICEPRESIDENTE", Position.BELOW);
+        KeywordSearchConfig config = new KeywordSearchConfig("MESA", Position.LEFT);
 
         TextReader.read(telegramaJpg.getFile(), config);
 
