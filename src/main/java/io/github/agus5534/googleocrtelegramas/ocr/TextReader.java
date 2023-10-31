@@ -94,13 +94,13 @@ public class TextReader {
 
                             PolygonUtils.showPolygon(searchPosition);
 
-                            /*Busqueda de todos los strings
+                            //Busqueda de todos los strings
                             for (EntityAnnotation annotations : res.getTextAnnotationsList()) {
                                 String text = annotations.getDescription();
                                 BoundingPoly boundingPoly = annotations.getBoundingPoly();
-
+                                System.out.println("Text: " + text);
                                 PolygonUtils.showPolygon(boundingPoly);
-                            }*/
+                            }
 
                         }
                     }
@@ -108,6 +108,14 @@ public class TextReader {
                     System.out.println("No se pudo obtener el texto dentro del polígono.");
 
                     PolygonUtils.showPolygon(searchPosition);
+
+                    //Busqueda de todos los strings
+                    for (EntityAnnotation annotations : res.getTextAnnotationsList()) {
+                        String text = annotations.getDescription();
+                        BoundingPoly boundingPoly = annotations.getBoundingPoly();
+                        System.out.println("Text: " + text);
+                        PolygonUtils.showPolygon(boundingPoly);
+                    }
 
                     }
             } else {
