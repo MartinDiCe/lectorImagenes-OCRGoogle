@@ -16,12 +16,17 @@ import java.util.stream.Collectors;
 
 public class Main {
 
+    static String URL_1 = "https://cdn.discordapp.com/attachments/967975761543839764/1168685619573174432/balotaje.txt";
+    static String URL_2 = "https://cdn.discordapp.com/attachments/967975761543839764/1168739797309857912/balotaje-2.txt";
+    static String URL_3 = "https://cdn.discordapp.com/attachments/967975761543839764/1168739824526700565/balotaje-3.txt";
+
+
     public static FileCreator mainFolder = new FileCreator(new File(System.getProperty("user.home")), "elecciones-tests/");
     public static void main(String[] args) {
 
         byte[] bytes;
         try {
-            var url = new URL("https://cdn.discordapp.com/attachments/967975761543839764/1168685619573174432/balotaje.txt").openStream();
+            var url = new URL(URL_3).openStream(); // CAMBIAR CON URL DESDE ARRIBA SI DESEAN CAMBIAR EL TELEGRAMA!
 
 
             var string = IOUtils.toString(url, StandardCharsets.UTF_8);
