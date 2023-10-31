@@ -2,50 +2,76 @@ package io.github.agus5534.googleocrtelegramas.ocr;
 
 import com.google.cloud.vision.v1.*;
 import com.google.protobuf.ByteString;
-import io.github.agus5534.googleocrtelegramas.utils.KeywordSearchConfig;
-import io.github.agus5534.googleocrtelegramas.utils.PolygonUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class TextReader {
-    public static void read(File tiff, KeywordSearchConfig config) throws IOException {
+    public static void read(File tiff) throws IOException {
         ByteString imgBytes = ByteString.readFrom(new FileInputStream(tiff));
-
         Image img = Image.newBuilder().setContent(imgBytes).build();
         Feature feat = Feature.newBuilder().setType(Feature.Type.TEXT_DETECTION).build();
 
-        List<String> keywords = config.getKeywords();
-
         try (ImageAnnotatorClient client = ImageAnnotatorClient.create()) {
-            for (String keyword : keywords) {
-                AnnotateImageRequest request = AnnotateImageRequest.newBuilder()
-                        .addFeatures(feat)
-                        .setImage(img)
-                        .build();
-                BatchAnnotateImagesResponse response = client.batchAnnotateImages(Arrays.asList(request));
-                List<AnnotateImageResponse> responses = response.getResponsesList();
+            AnnotateImageRequest request = AnnotateImageRequest.newBuilder()
+                    .addFeatures(feat)
+                    .setImage(img)
+                    .build();
+            BatchAnnotateImagesResponse response = client.batchAnnotateImages(Arrays.asList(request));
+            List<AnnotateImageResponse> responses = response.getResponsesList();
 
-                for (AnnotateImageResponse res : responses) {
-                    if (res.hasError()) {
-                        System.out.format("Error: %s%n", res.getError().getMessage());
-                        return;
+            JSONArray annotationsArray = new JSONArray();
+
+            int currentRightX = 0; // Para rastrear la coordenada X más a la derecha
+            String previousText = ""; // Para rastrear el texto de la sección actual
+            boolean isFirstSection = true;
+
+            for (AnnotateImageResponse res : responses) {
+                if (res.hasError()) {
+                    System.out.format("Error: %s%n", res.getError().getMessage());
+                    return;
+                }
+
+                for (EntityAnnotation annotation : res.getTextAnnotationsList()) {
+                    String text = annotation.getDescription();
+                    BoundingPoly boundingPoly = annotation.getBoundingPoly();
+                    Vertex rightBottom = boundingPoly.getVertices(2);
+
+                    if (!isFirstSection && rightBottom.getX() < currentRightX) {
+
+                        int lastIndex = annotationsArray.length() - 1;
+                        JSONObject lastSection = annotationsArray.getJSONObject(lastIndex);
+                        lastSection.put("text", lastSection.getString("text") + "\n");
                     }
 
-                    for (EntityAnnotation annotation : res.getTextAnnotationsList()) {
-                        String text = annotation.getDescription();
-                        BoundingPoly boundingPoly = annotation.getBoundingPoly();
+                    JSONObject annotationObject = new JSONObject();
+                    annotationObject.put("text", text);
 
-                        if (text.contains(keyword)) {
-                            System.out.println("Keyword: " + keyword);
-                            System.out.println("Posición de búsqueda: " + config.getSearchPosition());
-                            PolygonUtils.showPolygon(boundingPoly);
-                        }
+                    JSONArray verticesArray = new JSONArray();
+                    for (Vertex vertex : boundingPoly.getVerticesList()) {
+                        JSONObject vertexObject = new JSONObject();
+                        vertexObject.put("x", vertex.getX());
+                        vertexObject.put("y", vertex.getY());
+                        verticesArray.put(vertexObject); // Utiliza put en lugar de add
                     }
+
+                    annotationObject.put("vertices", verticesArray);
+
+                    annotationsArray.put(annotationObject); // Utiliza put en lugar de add
+
+                    // Actualizar las variables de seguimiento
+                    currentRightX = rightBottom.getX();
+                    previousText = text;
+                    isFirstSection = false;
                 }
             }
+
+            System.out.println("JSON resultante:");
+            System.out.println(annotationsArray.toString(2)); // Formatear el JSON con sangría para una mejor legibilidad
         }
     }
 }

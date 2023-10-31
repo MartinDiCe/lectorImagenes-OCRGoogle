@@ -6,7 +6,6 @@ import com.google.gson.JsonParser;
 import io.github.agus5534.googleocrtelegramas.models.Position;
 import io.github.agus5534.googleocrtelegramas.ocr.TextReader;
 import io.github.agus5534.googleocrtelegramas.utils.FileCreator;
-import io.github.agus5534.googleocrtelegramas.utils.KeywordSearchConfig;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -57,16 +56,7 @@ public class TelegramaDownloader {
 
         ImageIO.write(jpegImage, "jpg", telegramaJpg.getFile());
 
-        List<String> palabras = new ArrayList<>();
-        palabras.add("134 UNION POR LA PATRIA (SERGIO MASSA - AGUSTIN ROSSI)");
-        palabras.add("135 LA LIBERTAD AVANZA (JAVIER MILEI - VICTORIA VILLARRUEL)");
-        palabras.add("MESA:");
-
-        Position posicion = Position.SAME;
-
-        KeywordSearchConfig config = new KeywordSearchConfig(palabras, posicion);
-
-        TextReader.read(telegramaJpg.getFile(), config);
+        TextReader.read(telegramaJpg.getFile());
 
     }
 
