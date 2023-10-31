@@ -3,17 +3,19 @@ package io.github.agus5534.googleocrtelegramas.utils;
 import io.github.agus5534.googleocrtelegramas.models.Position;
 import com.google.cloud.vision.v1.BoundingPoly;
 
+import java.util.List;
+
 public class KeywordSearchConfig {
-    private final String keyword;
+    private final List<String> keywords;
     private final Position searchPosition;
 
-    public KeywordSearchConfig(String keyword, Position searchPosition) {
-        this.keyword = keyword;
+    public KeywordSearchConfig(List<String> keywords, Position searchPosition) {
+        this.keywords = keywords;
         this.searchPosition = searchPosition;
     }
 
-    public String getKeyword() {
-        return keyword;
+    public List<String> getKeywords() {
+        return keywords;
     }
 
     public Position getSearchPosition() {

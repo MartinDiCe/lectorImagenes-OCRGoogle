@@ -11,14 +11,13 @@ import io.github.agus5534.googleocrtelegramas.utils.KeywordSearchConfig;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.awt.image.RenderedImage;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Base64;
+import java.util.List;
 import java.util.UUID;
 
 public class TelegramaDownloader {
@@ -58,7 +57,14 @@ public class TelegramaDownloader {
 
         ImageIO.write(jpegImage, "jpg", telegramaJpg.getFile());
 
-        KeywordSearchConfig config = new KeywordSearchConfig("MESA", Position.LEFT);
+        List<String> palabras = new ArrayList<>();
+        palabras.add("134 UNION POR LA PATRIA (SERGIO MASSA - AGUSTIN ROSSI)");
+        palabras.add("135 LA LIBERTAD AVANZA (JAVIER MILEI - VICTORIA VILLARRUEL)");
+        palabras.add("MESA:");
+
+        Position posicion = Position.SAME;
+
+        KeywordSearchConfig config = new KeywordSearchConfig(palabras, posicion);
 
         TextReader.read(telegramaJpg.getFile(), config);
 
