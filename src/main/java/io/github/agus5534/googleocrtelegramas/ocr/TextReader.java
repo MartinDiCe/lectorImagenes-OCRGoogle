@@ -26,8 +26,8 @@ public class TextReader {
 
             JSONArray annotationsArray = new JSONArray();
 
-            int currentRightX = 0; // Para rastrear la coordenada X más a la derecha
-            String previousText = ""; // Para rastrear el texto de la sección actual
+            int currentRightX = 0;
+            String previousText = "";
             boolean isFirstSection = true;
 
             for (AnnotateImageResponse res : responses) {
@@ -45,7 +45,7 @@ public class TextReader {
 
                         int lastIndex = annotationsArray.length() - 1;
                         JSONObject lastSection = annotationsArray.getJSONObject(lastIndex);
-                        lastSection.put("text", lastSection.getString("text") + "\n");
+                        lastSection.put("text", lastSection.getString("text"));
                     }
 
                     JSONObject annotationObject = new JSONObject();
