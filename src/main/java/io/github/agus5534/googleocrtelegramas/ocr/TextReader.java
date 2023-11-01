@@ -52,26 +52,33 @@ public class TextReader {
                     annotationObject.put("text", text);
 
                     JSONArray verticesArray = new JSONArray();
+                    List<JSONObject> vertexList = new ArrayList<>();
+
                     for (Vertex vertex : boundingPoly.getVerticesList()) {
                         JSONObject vertexObject = new JSONObject();
                         vertexObject.put("x", vertex.getX());
                         vertexObject.put("y", vertex.getY());
-                        verticesArray.put(vertexObject); // Utiliza put en lugar de add
+                        vertexList.add(vertexObject);
+                    }
+
+                    vertexList.sort(Comparator.comparingInt(o -> o.getInt("x")));
+
+                    for (JSONObject vertexObject : vertexList) {
+                        verticesArray.put(vertexObject);
                     }
 
                     annotationObject.put("vertices", verticesArray);
 
-                    annotationsArray.put(annotationObject); // Utiliza put en lugar de add
+                    annotationsArray.put(annotationObject);
 
-                    // Actualizar las variables de seguimiento
                     currentRightX = rightBottom.getX();
                     previousText = text;
                     isFirstSection = false;
                 }
             }
 
-            System.out.println("JSON resultante:");
-            System.out.println(annotationsArray.toString(2)); // Formatear el JSON con sangría para una mejor legibilidad
+            System.out.println(annotationsArray.toString(2));
+
         }
     }
 }
