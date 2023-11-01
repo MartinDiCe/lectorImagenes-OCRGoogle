@@ -2,34 +2,33 @@ package io.github.agus5534.googleocrtelegramas.ocr;
 
 import com.google.cloud.vision.v1.*;
 import com.google.protobuf.ByteString;
-import io.github.agus5534.googleocrtelegramas.models.Position;
-import io.github.agus5534.googleocrtelegramas.utils.KeywordSearchConfig;
-import io.github.agus5534.googleocrtelegramas.utils.PolygonUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class TextReader {
-
-    public static void read(File tiff, KeywordSearchConfig config) throws IOException {
-        List<AnnotateImageRequest> requests = new ArrayList<>();
+    public static void read(File tiff) throws IOException {
         ByteString imgBytes = ByteString.readFrom(new FileInputStream(tiff));
-
         Image img = Image.newBuilder().setContent(imgBytes).build();
         Feature feat = Feature.newBuilder().setType(Feature.Type.TEXT_DETECTION).build();
-        AnnotateImageRequest request = AnnotateImageRequest.newBuilder().addFeatures(feat).setImage(img).build();
-        requests.add(request);
 
         try (ImageAnnotatorClient client = ImageAnnotatorClient.create()) {
-            BatchAnnotateImagesResponse response = client.batchAnnotateImages(requests);
+            AnnotateImageRequest request = AnnotateImageRequest.newBuilder()
+                    .addFeatures(feat)
+                    .setImage(img)
+                    .build();
+            BatchAnnotateImagesResponse response = client.batchAnnotateImages(Arrays.asList(request));
             List<AnnotateImageResponse> responses = response.getResponsesList();
 
-            String keyword = config.getKeyword();
-            BoundingPoly keywordPosition = null;
-            BoundingPoly searchPosition = null;
+            JSONArray annotationsArray = new JSONArray();
+
+            int currentRightX = 0;
+            String previousText = "";
+            boolean isFirstSection = true;
 
             for (AnnotateImageResponse res : responses) {
                 if (res.hasError()) {
@@ -40,82 +39,39 @@ public class TextReader {
                 for (EntityAnnotation annotation : res.getTextAnnotationsList()) {
                     String text = annotation.getDescription();
                     BoundingPoly boundingPoly = annotation.getBoundingPoly();
+                    Vertex rightBottom = boundingPoly.getVertices(2);
 
-                    if (text.contains(keyword)) {
-                        keywordPosition = boundingPoly;
-                    } else if (keywordPosition != null) {
-                        // Determina la posición según la configuración
-                        if (config.getSearchPosition() == Position.RIGHT) {
-                            if (PolygonUtils.isRightOf(boundingPoly, keywordPosition)) {
-                                searchPosition = boundingPoly;
-                                break;
-                            }
-                        } else if (config.getSearchPosition() == Position.LEFT) {
-                            if (PolygonUtils.isLeftOf(boundingPoly, keywordPosition)) {
-                                searchPosition = boundingPoly;
-                                break;
-                            }
-                        } else if (config.getSearchPosition() == Position.ABOVE) {
-                            if (PolygonUtils.isAbove(boundingPoly, keywordPosition)) {
-                                searchPosition = boundingPoly;
-                                break;
-                            }
-                        } else if (config.getSearchPosition() == Position.BELOW) {
-                            if (PolygonUtils.isBelow(boundingPoly, keywordPosition)) {
-                                searchPosition = boundingPoly;
-                                break;
-                            }
-                        }
+                    if (!isFirstSection && rightBottom.getX() < currentRightX) {
+
+                        int lastIndex = annotationsArray.length() - 1;
+                        JSONObject lastSection = annotationsArray.getJSONObject(lastIndex);
+                        lastSection.put("text", lastSection.getString("text"));
                     }
+
+                    JSONObject annotationObject = new JSONObject();
+                    annotationObject.put("text", text);
+
+                    JSONArray verticesArray = new JSONArray();
+                    for (Vertex vertex : boundingPoly.getVerticesList()) {
+                        JSONObject vertexObject = new JSONObject();
+                        vertexObject.put("x", vertex.getX());
+                        vertexObject.put("y", vertex.getY());
+                        verticesArray.put(vertexObject); // Utiliza put en lugar de add
+                    }
+
+                    annotationObject.put("vertices", verticesArray);
+
+                    annotationsArray.put(annotationObject); // Utiliza put en lugar de add
+
+                    // Actualizar las variables de seguimiento
+                    currentRightX = rightBottom.getX();
+                    previousText = text;
+                    isFirstSection = false;
                 }
             }
 
-            AnnotateImageResponse res = null;
-
-            for (AnnotateImageResponse resp : responses) {
-                res = resp;
-                if (resp.hasError()) {
-                    System.out.format("Error: %s%n", resp.getError().getMessage());
-                    return;
-                }
-            }
-
-            if (searchPosition != null) {
-                System.out.println("Keyword: " + config.getKeyword());
-                System.out.println("Posición de búsqueda: " + config.getSearchPosition());
-
-                PolygonUtils.showPolygon(keywordPosition);
-
-                if (res != null) {
-                    for (EntityAnnotation annotation : res.getTextAnnotationsList()) {
-                        if (PolygonUtils.arePolygonsEqual(annotation.getBoundingPoly(), searchPosition)) {
-                            String textInSearchPosition = annotation.getDescription();
-                            System.out.println("Texto dentro del polígono: " + textInSearchPosition);
-
-                            PolygonUtils.showPolygon(searchPosition);
-
-                            /*Busqueda de todos los strings
-                            for (EntityAnnotation annotations : res.getTextAnnotationsList()) {
-                                String text = annotations.getDescription();
-                                BoundingPoly boundingPoly = annotations.getBoundingPoly();
-
-                                PolygonUtils.showPolygon(boundingPoly);
-                            }*/
-
-                        }
-                    }
-                } else {
-                    System.out.println("No se pudo obtener el texto dentro del polígono.");
-
-                    PolygonUtils.showPolygon(searchPosition);
-
-                    }
-            } else {
-                System.out.println("La posición deseada no se encontró en la imagen.");
-            }
+            System.out.println("JSON resultante:");
+            System.out.println(annotationsArray.toString(2)); // Formatear el JSON con sangría para una mejor legibilidad
         }
     }
-
-
-
 }

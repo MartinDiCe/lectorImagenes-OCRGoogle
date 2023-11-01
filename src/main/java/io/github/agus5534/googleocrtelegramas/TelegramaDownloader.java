@@ -6,19 +6,17 @@ import com.google.gson.JsonParser;
 import io.github.agus5534.googleocrtelegramas.models.Position;
 import io.github.agus5534.googleocrtelegramas.ocr.TextReader;
 import io.github.agus5534.googleocrtelegramas.utils.FileCreator;
-import io.github.agus5534.googleocrtelegramas.utils.KeywordSearchConfig;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.awt.image.RenderedImage;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Base64;
+import java.util.List;
 import java.util.UUID;
 
 public class TelegramaDownloader {
@@ -58,9 +56,7 @@ public class TelegramaDownloader {
 
         ImageIO.write(jpegImage, "jpg", telegramaJpg.getFile());
 
-        KeywordSearchConfig config = new KeywordSearchConfig("VICEPRESIDENTE", Position.BELOW);
-
-        TextReader.read(telegramaJpg.getFile(), config);
+        TextReader.read(telegramaJpg.getFile());
 
     }
 
