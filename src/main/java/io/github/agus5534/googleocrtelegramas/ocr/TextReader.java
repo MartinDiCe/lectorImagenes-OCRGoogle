@@ -7,8 +7,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import static io.github.agus5534.googleocrtelegramas.utils.TextSearcher.findTextNearVertices;
+import static io.github.agus5534.googleocrtelegramas.utils.VertexSum.sumVertices;
 
 public class TextReader {
     public static void read(File tiff) throws IOException {
@@ -76,8 +80,86 @@ public class TextReader {
                     isFirstSection = false;
                 }
             }
+            //Vertices buscados
+            JSONArray vert = null;
 
-            System.out.println(annotationsArray.toString(2));
+            for (int i = annotationsArray.length() - 1; i >= 0; i--) {
+                JSONObject annotation = annotationsArray.getJSONObject(i);
+                String text = annotation.getString("text");
+
+                if (text.contains("MESA")) {
+                    System.out.println("Texto: " + text);
+                    JSONArray vertices = annotation.getJSONArray("vertices");
+                    System.out.println("Vértices:");
+
+                    // Guardar los vértices de MESA en la variable mesaVertices
+                    vert = vertices;
+
+                    for (int j = 0; j < vertices.length(); j++) {
+                        JSONObject vertexObject = vertices.getJSONObject(j);
+                        int x = vertexObject.getInt("x");
+                        int y = vertexObject.getInt("y");
+                        System.out.println("x: " + x + ", y: " + y);
+                    }
+
+                    break;
+                }
+            }
+
+                System.out.println("Vértices almacenados: " + vert.toString());
+
+
+            //Otra palabra clave
+            JSONArray vert2 = null;
+
+            for (int i = annotationsArray.length() - 1; i >= 0; i--) {
+                JSONObject annotation = annotationsArray.getJSONObject(i);
+                String text = annotation.getString("text");
+
+                if (text.contains("VICEPRESIDENTE")) {
+                    System.out.println("Texto: " + text);
+                    JSONArray vertices = annotation.getJSONArray("vertices");
+                    System.out.println("Vértices:");
+
+                    // Guardar los vértices de MESA en la variable mesaVertices
+                    vert2 = vertices;
+
+                    for (int j = 0; j < vertices.length(); j++) {
+                        JSONObject vertexObject = vertices.getJSONObject(j);
+                        int x = vertexObject.getInt("x");
+                        int y = vertexObject.getInt("y");
+                        System.out.println("x: " + x + ", y: " + y);
+                    }
+
+                    break;
+                }
+            }
+
+            System.out.println("Vértices almacenados: " + vert2.toString());
+
+            //VALORES PARA SUMAR AL VERTICE DE MESA Y OBTENER EL MESAID
+            JSONArray sumValuesMesa = new JSONArray("[{\"x\":43,\"y\":2},{\"x\":45,\"y\":2},{\"x\":90,\"y\":5},{\"x\":100,\"y\":3}]");
+
+            //VALORES PARA SUMAR AL VERTICE DE VICEPRESIDENTE Y OBTENER EL VOTOS UP
+            JSONArray sumValuesUP = new JSONArray("[{\"x\":43,\"y\":2},{\"x\":45,\"y\":2},{\"x\":90,\"y\":5},{\"x\":100,\"y\":3}]");
+
+            //MESA
+            JSONArray newVertices = sumVertices(vert, sumValuesMesa);
+
+            System.out.println("New Vertices: " + newVertices.toString());
+
+            String foundText = findTextNearVertices(annotationsArray, newVertices);
+
+            System.out.println("MESA: " + foundText);
+
+            //VICEPRESIDENTE
+            JSONArray newVertices2 = sumVertices(vert2, sumValuesUP);
+
+            System.out.println("New Vertices2: " + newVertices2.toString());
+
+            String foundText2 = findTextNearVertices(annotationsArray, newVertices2);
+
+            System.out.println("Votos UP: " + foundText2);
 
         }
     }
