@@ -5,11 +5,13 @@ import org.json.JSONArray;
 public class SumValueConfig {
     private JSONArray sumValuesMesa;
     private JSONArray sumValuesUP;
+    private JSONArray sumValuesLLA;
 
     public SumValueConfig() {
         // Inicializa los valores de suma para MESA y VICEPRESIDENTE
         sumValuesMesa = new JSONArray("[{\"x\":43,\"y\":2},{\"x\":45,\"y\":2},{\"x\":90,\"y\":5},{\"x\":100,\"y\":3}]");
         sumValuesUP = new JSONArray("[{\"x\":-7,\"y\":32},{\"x\":-1,\"y\":31},{\"x\":-53,\"y\":22},{\"x\":-52,\"y\":30}]");
+        sumValuesLLA = new JSONArray("[{\"x\":-8,\"y\":52},{\"x\":-8,\"y\":59},{\"x\":-43,\"y\":52},{\"x\":-43,\"y\":59}]");
     }
 
     public JSONArray getSumValuesMesa() {
@@ -18,6 +20,10 @@ public class SumValueConfig {
 
     public JSONArray getSumValuesUP() {
         return sumValuesUP;
+    }
+
+    public JSONArray getSumValuesLLA() {
+        return sumValuesLLA;
     }
 }
 

@@ -83,7 +83,9 @@ public class TextReader {
                     isFirstSection = false;
                 }
             }
-            //Vertices buscados
+
+
+            //MESA
             JSONArray vert = null;
 
             for (int i = annotationsArray.length() - 1; i >= 0; i--) {
@@ -112,7 +114,7 @@ public class TextReader {
                 System.out.println("Vértices almacenados: " + vert.toString());
 
 
-            //Otra palabra clave
+            //UP
             JSONArray vert2 = null;
 
             for (int i = annotationsArray.length() - 1; i >= 0; i--) {
@@ -140,7 +142,35 @@ public class TextReader {
 
             System.out.println("Vértices almacenados: " + vert2.toString());
 
-            //MESA
+            //LLA
+            JSONArray vert3 = null;
+
+            for (int i = annotationsArray.length() - 1; i >= 0; i--) {
+                JSONObject annotation = annotationsArray.getJSONObject(i);
+                String text = annotation.getString("text");
+
+                if (text.contains("VICEPRESIDENTE")) {
+                    System.out.println("Texto: " + text);
+                    JSONArray vertices = annotation.getJSONArray("vertices");
+                    System.out.println("Vértices:");
+
+                    // Guardar los vértices de MESA en la variable mesaVertices
+                    vert3 = vertices;
+
+                    for (int j = 0; j < vertices.length(); j++) {
+                        JSONObject vertexObject = vertices.getJSONObject(j);
+                        int x = vertexObject.getInt("x");
+                        int y = vertexObject.getInt("y");
+                        System.out.println("x: " + x + ", y: " + y);
+                    }
+
+                    break;
+                }
+            }
+
+            System.out.println("Vértices almacenados: " + vert3.toString());
+
+            //MESA -> MesaId
             JSONArray newVertices = sumVertices(vert, sumValueConfig.getSumValuesMesa());
 
             System.out.println("New Vertices: " + newVertices.toString());
@@ -149,14 +179,23 @@ public class TextReader {
 
             System.out.println("MESA: " + foundText);
 
-            //VICEPRESIDENTE
-            JSONArray newVertices2 = sumVertices(vert2, sumValueConfig.getSumValuesUP());
+            //VICEPRESIDENTE -> votos UP
+            JSONArray newVertices2 = sumVertices(vert3, sumValueConfig.getSumValuesUP());
 
             System.out.println("New Vertices2: " + newVertices2.toString());
 
             String foundText2 = findTextNearVertices(annotationsArray, newVertices2);
 
             System.out.println("Votos UP: " + foundText2);
+
+            //VICEPRESIDENTE -> votos LLA
+            JSONArray newVertices3 = sumVertices(vert3, sumValueConfig.getSumValuesLLA());
+
+            System.out.println("New Vertices3: " + newVertices3.toString());
+
+            String foundText3 = findTextNearVertices(annotationsArray, newVertices3);
+
+            System.out.println("Votos LLA: " + foundText3);
 
             //Obtener el JSON completo de la imagen para ir revisando los vertices de los textos en caso de errores
           //  System.out.println("JSON: " + annotationsArray.toString(2));
