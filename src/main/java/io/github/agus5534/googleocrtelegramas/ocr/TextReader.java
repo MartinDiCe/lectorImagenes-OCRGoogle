@@ -7,11 +7,18 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
+
+import io.github.agus5534.googleocrtelegramas.utils.SumValueConfig;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import static io.github.agus5534.googleocrtelegramas.utils.TextSearcher.findTextNearVertices;
+import static io.github.agus5534.googleocrtelegramas.utils.VertexSum.sumVertices;
+
 public class TextReader {
     public static void read(File tiff) throws IOException {
+
+        SumValueConfig sumValueConfig = new SumValueConfig();
         ByteString imgBytes = ByteString.readFrom(new FileInputStream(tiff));
         Image img = Image.newBuilder().setContent(imgBytes).build();
         Feature feat = Feature.newBuilder().setType(Feature.Type.TEXT_DETECTION).build();
@@ -76,8 +83,83 @@ public class TextReader {
                     isFirstSection = false;
                 }
             }
+            //Vertices buscados
+            JSONArray vert = null;
 
-            System.out.println(annotationsArray.toString(2));
+            for (int i = annotationsArray.length() - 1; i >= 0; i--) {
+                JSONObject annotation = annotationsArray.getJSONObject(i);
+                String text = annotation.getString("text");
+
+                if (text.contains("MESA")) {
+                    System.out.println("Texto: " + text);
+                    JSONArray vertices = annotation.getJSONArray("vertices");
+                    System.out.println("Vértices:");
+
+                    // Guardar los vértices de MESA en la variable mesaVertices
+                    vert = vertices;
+
+                    for (int j = 0; j < vertices.length(); j++) {
+                        JSONObject vertexObject = vertices.getJSONObject(j);
+                        int x = vertexObject.getInt("x");
+                        int y = vertexObject.getInt("y");
+                        System.out.println("x: " + x + ", y: " + y);
+                    }
+
+                    break;
+                }
+            }
+
+                System.out.println("Vértices almacenados: " + vert.toString());
+
+
+            //Otra palabra clave
+            JSONArray vert2 = null;
+
+            for (int i = annotationsArray.length() - 1; i >= 0; i--) {
+                JSONObject annotation = annotationsArray.getJSONObject(i);
+                String text = annotation.getString("text");
+
+                if (text.contains("VICEPRESIDENTE")) {
+                    System.out.println("Texto: " + text);
+                    JSONArray vertices = annotation.getJSONArray("vertices");
+                    System.out.println("Vértices:");
+
+                    // Guardar los vértices de MESA en la variable mesaVertices
+                    vert2 = vertices;
+
+                    for (int j = 0; j < vertices.length(); j++) {
+                        JSONObject vertexObject = vertices.getJSONObject(j);
+                        int x = vertexObject.getInt("x");
+                        int y = vertexObject.getInt("y");
+                        System.out.println("x: " + x + ", y: " + y);
+                    }
+
+                    break;
+                }
+            }
+
+            System.out.println("Vértices almacenados: " + vert2.toString());
+
+            //MESA
+            JSONArray newVertices = sumVertices(vert, sumValueConfig.getSumValuesMesa());
+
+            System.out.println("New Vertices: " + newVertices.toString());
+
+            String foundText = findTextNearVertices(annotationsArray, newVertices);
+
+            System.out.println("MESA: " + foundText);
+
+            //VICEPRESIDENTE
+            JSONArray newVertices2 = sumVertices(vert2, sumValueConfig.getSumValuesUP());
+
+            System.out.println("New Vertices2: " + newVertices2.toString());
+
+            String foundText2 = findTextNearVertices(annotationsArray, newVertices2);
+
+            System.out.println("Votos UP: " + foundText2);
+
+            //Obtener todo el JSON para ir revisando los vertices de los textos en caso de errores
+          //  System.out.println("JSON: " + annotationsArray.toString(2));
 
         }
     }
