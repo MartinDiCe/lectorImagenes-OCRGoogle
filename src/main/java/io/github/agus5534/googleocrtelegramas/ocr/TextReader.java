@@ -158,7 +158,7 @@ public class TextReader {
 
             System.out.println("Votos UP: " + foundText2);
 
-            //Obtener todo el JSON para ir revisando los vertices de los textos en caso de errores
+            //Obtener el JSON completo de la imagen para ir revisando los vertices de los textos en caso de errores
           //  System.out.println("JSON: " + annotationsArray.toString(2));
 
         }
