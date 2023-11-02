@@ -88,37 +88,6 @@ public class PolygonUtils {
         return minY1 > maxY2;
     }
 
-    public static BoundingPoly findPositionForKeyword(List<EntityAnnotation> annotations, KeywordSearchConfig config, BoundingPoly referencePoly) {
-        for (EntityAnnotation annotation : annotations) {
-            String text = annotation.getDescription();
-            if (text.contains(config.getKeyword())) {
-                switch (config.getSearchPosition()) {
-                    case RIGHT:
-                        if (isRightOf(annotation.getBoundingPoly(), config.getReferencePoly(referencePoly))) {
-                            return annotation.getBoundingPoly();
-                        }
-                        break;
-                    case ABOVE:
-                        if (isAbove(annotation.getBoundingPoly(), config.getReferencePoly(referencePoly))) {
-                            return annotation.getBoundingPoly();
-                        }
-                        break;
-                    case LEFT:
-                        if (isLeftOf(annotation.getBoundingPoly(), config.getReferencePoly(referencePoly))) {
-                            return annotation.getBoundingPoly();
-                        }
-                        break;
-                    case BELOW:
-                        if (isBelow(annotation.getBoundingPoly(), config.getReferencePoly(referencePoly))) {
-                            return annotation.getBoundingPoly();
-                        }
-                        break;
-                }
-            }
-        }
-        return null;
-    }
-
     public static boolean arePolygonsEqual(BoundingPoly poly1, BoundingPoly poly2) {
         if (poly1.getVerticesCount() != poly2.getVerticesCount()) {
             return false;
