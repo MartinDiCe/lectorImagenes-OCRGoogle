@@ -1,4 +1,4 @@
-package io.github.agus5534.googleocrtelegramas.utils;
+package io.github.agus5534.googleocrtelegramas.utils.texts;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -47,9 +47,9 @@ public class TextSearcher {
         }
 
         if (nearestText != null) {
-            return "Texto más cercano: " + nearestText;
+            return "Texto mas cercano: " + nearestText;
         } else {
-            return "No se encontró ningún texto cercano.";
+            return "No se encontro ningun texto cercano.";
         }
     }
 }
