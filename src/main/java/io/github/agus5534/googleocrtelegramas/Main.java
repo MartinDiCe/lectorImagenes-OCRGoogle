@@ -1,6 +1,7 @@
 package io.github.agus5534.googleocrtelegramas;
 
-import io.github.agus5534.googleocrtelegramas.utils.FileCreator;
+import io.github.agus5534.googleocrtelegramas.utils.filesConfig.FileCreator;
+
 import java.io.*;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -12,8 +13,7 @@ public class Main {
         String tel = "/telegramas/telegrama-" + ThreadLocalRandom.current().nextInt(1, 49) + ".tif"; // En caso de agregar más, renombrar a telX.tiff y mover el bound de 5 por uno más por cada archivo
         var finalURL = Main.class.getResource(tel);
 
-
-        byte[] bytes = new byte[0];
+        byte[] bytes;
         try {
             bytes = Files.readAllBytes(new File(finalURL.toURI()).toPath());
         } catch (IOException | URISyntaxException e) {

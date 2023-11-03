@@ -47,9 +47,9 @@ public class TextSearcher {
         }
 
         if (nearestText != null) {
-            return "Texto mas cercano: " + nearestText;
+            return nearestText;
         } else {
-            return "No se encontro ningun texto cercano.";
+            return "-1";
         }
     }
 }

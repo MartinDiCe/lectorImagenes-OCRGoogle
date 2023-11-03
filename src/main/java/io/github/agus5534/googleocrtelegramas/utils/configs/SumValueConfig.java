@@ -7,17 +7,22 @@ public class SumValueConfig {
     private JSONArray sumValuesUP;
     private JSONArray sumValuesLLA;
     private JSONArray sumValuesNulos;
-    private JSONArray sumValuesMesaDosPuntos;
+    private JSONArray sumValuesRecurridos;
+    private JSONArray sumValuesImpugnados;
+    private JSONArray sumValuesBlanco;
+    private JSONArray sumValuesTotal;
 
     public SumValueConfig() {
 
-        sumValuesMesaDosPuntos = new JSONArray("[{\"x\":43,\"y\":2},{\"x\":45,\"y\":2},{\"x\":90,\"y\":5},{\"x\":100,\"y\":3}]");
-
-
         sumValuesMesa = new JSONArray("[{\"x\":43,\"y\":2},{\"x\":45,\"y\":2},{\"x\":90,\"y\":5},{\"x\":100,\"y\":3}]");
-        sumValuesUP = new JSONArray("[{\"x\":-20,\"y\":32},{\"x\":-20,\"y\":40},{\"x\":-50,\"y\":33},{\"x\":-50,\"y\":41}]");
-        sumValuesLLA = new JSONArray("[{\"x\":-20,\"y\":63},{\"x\":-19,\"y\":72},{\"x\":-25,\"y\":63},{\"x\":-25,\"y\":72}]");
-        sumValuesNulos = new JSONArray("[{\"x\":-20,\"y\":96},{\"x\":-20,\"y\":106},{\"x\":-47,\"y\":95},{\"x\":-47,\"y\":104}]");
+        sumValuesUP = new JSONArray("[{\"x\":-15,\"y\":30},{\"x\":-20,\"y\":33},{\"x\":-25,\"y\":30},{\"x\":-25,\"y\":33}]");
+        sumValuesLLA = new JSONArray("[{\"x\":-20,\"y\":50},{\"x\":-20,\"y\":63},{\"x\":-25,\"y\":50},{\"x\":-25,\"y\":63}]");
+        sumValuesNulos = new JSONArray("[{\"x\":-20,\"y\":80},{\"x\":-20,\"y\":93},{\"x\":-25,\"y\":80},{\"x\":-25,\"y\":93}]");
+        sumValuesRecurridos = new JSONArray("[{\"x\":-20,\"y\":110},{\"x\":-20,\"y\":123},{\"x\":-25,\"y\":110},{\"x\":-25,\"y\":123}]");
+        sumValuesImpugnados = new JSONArray("[{\"x\":-20,\"y\":140},{\"x\":-20,\"y\":153},{\"x\":-25,\"y\":140},{\"x\":-25,\"y\":153}]");
+        sumValuesBlanco = new JSONArray("[{\"x\":-20,\"y\":170},{\"x\":-20,\"y\":183},{\"x\":-25,\"y\":170},{\"x\":-25,\"y\":183}]");
+        sumValuesTotal = new JSONArray("[{\"x\":-20,\"y\":200},{\"x\":-20,\"y\":213},{\"x\":-25,\"y\":200},{\"x\":-25,\"y\":213}]");
+
     }
 
     public JSONArray getSumValuesMesa() {
@@ -36,8 +41,20 @@ public class SumValueConfig {
         return sumValuesNulos;
     }
 
-    public JSONArray getSumValuesMesaDosPuntos() {
-        return sumValuesMesaDosPuntos;
+    public JSONArray getSumValuesRecurridos() {
+        return sumValuesRecurridos;
+    }
+
+    public JSONArray getSumValuesImpugnados() {
+        return sumValuesImpugnados;
+    }
+
+    public JSONArray getSumValuesBlanco() {
+        return sumValuesBlanco;
+    }
+
+    public JSONArray getSumValuesTotal() {
+        return sumValuesTotal;
     }
 
 }
