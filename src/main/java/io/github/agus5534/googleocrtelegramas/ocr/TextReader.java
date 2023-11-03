@@ -21,7 +21,6 @@ public class TextReader {
 
         SumValueConfig sumValueConfig = new SumValueConfig();
         ByteString imgBytes = ByteString.readFrom(new FileInputStream(tiff));
-        VerticesFinder verticesFinder = new VerticesFinder();
 
         Image img = Image.newBuilder().setContent(imgBytes).build();
         Feature feat = Feature.newBuilder().setType(Feature.Type.TEXT_DETECTION).build();
