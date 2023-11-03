@@ -149,7 +149,6 @@ public class TextReader {
             int votoBlancoNumber = StringToNumberConverter.convert(votoBlanco);
 
             String numeroMesa = findTextNearVertices(annotationsArray, verticeMesaID);
-            int numeroMesaNumber = StringToNumberConverter.convert(numeroMesa);
 
             String votoTotales = findTextNearVertices(annotationsArray, verticeTotales);
             int votoTotalesNumber = StringToNumberConverter.convert(votoTotales);
