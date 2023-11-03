@@ -15,6 +15,7 @@ import java.util.*;
 import io.github.agus5534.googleocrtelegramas.exceptions.AnnotateImageException;
 import io.github.agus5534.googleocrtelegramas.models.dto.DatosTelegrama;
 import io.github.agus5534.googleocrtelegramas.utils.configs.SumValueConfig;
+import io.github.agus5534.googleocrtelegramas.utils.texts.StringToNumberConverter;
 import io.github.agus5534.googleocrtelegramas.utils.vertexs.VerticesFinder;
 import io.github.agus5534.googleocrtelegramas.utils.filesConfig.JSONFileWriter;
 import org.json.JSONArray;
@@ -109,108 +110,67 @@ public class TextReader {
                 e.printStackTrace();
             }
 
-            //MESA
             JSONArray vertMesa = VerticesFinder.findVertices(annotationsArray, "MESA",":");
 
-            //System.out.println("Vertices almacenados: " + vertMesa.toString());
-
-            //MESA -> MesaId
             JSONArray verticeMesaID = sumVertices(vertMesa, sumValueConfig.getSumValuesMesa());
 
-            //System.out.println("New Vertices: " + verticeMesaID.toString());
-
-            String numeroMesa = findTextNearVertices(annotationsArray, verticeMesaID);
-
-            //System.out.println("MESA: " + numeroMesa);
-
-            //PRESIDENTE
             JSONArray vertPresidente = VerticesFinder.findVertices(annotationsArray, "PRESIDENTE","VICEPRESIDENTE");
 
-            //System.out.println("Vertices almacenados: " + vertPresidente.toString());
-
-            //PRESIDENTE -> votos UP
             JSONArray verticeUP = sumVertices(vertPresidente, sumValueConfig.getSumValuesUP());
 
-            //System.out.println("VERTICE UP: " + verticeUP.toString());
-
-            String votoUP = findTextNearVertices(annotationsArray, verticeUP);
-
-            //System.out.println("Votos UP: " + votoUP);
-
-            //PRESIDENTE -> votos LLA
             JSONArray verticeLLA = sumVertices(vertPresidente, sumValueConfig.getSumValuesLLA());
 
-            //System.out.println("VERTICE LLA: " + verticeLLA.toString());
-
-            String votoLLA = findTextNearVertices(annotationsArray, verticeLLA);
-
-            //System.out.println("Votos LLA: " + votoLLA);
-
-            //PRESIDENTE -> votos NULOS
             JSONArray verticeNulos = sumVertices(vertPresidente, sumValueConfig.getSumValuesNulos());
 
-            //System.out.println("VERTICE Nulos: " + verticeNulos.toString());
-
-            String votoNulos = findTextNearVertices(annotationsArray, verticeNulos);
-
-            //System.out.println("Votos Nulos: " + votoNulos);
-
-            //PRESIDENTE -> votos Recurridos
             JSONArray verticeRecurrido = sumVertices(vertPresidente, sumValueConfig.getSumValuesRecurridos());
 
-            //System.out.println("VERTICE Recurridos: " + verticeRecurrido.toString());
-
-            String votoRecurrido = findTextNearVertices(annotationsArray, verticeRecurrido);
-
-            //System.out.println("Votos Recurridos: " + votoRecurrido);
-
-            //PRESIDENTE -> votos Impugnados
             JSONArray verticeImpugnados = sumVertices(vertPresidente, sumValueConfig.getSumValuesImpugnados());
 
-            //System.out.println("VERTICE Impugnados: " + verticeImpugnados.toString());
-
-            String votoImpugnado = findTextNearVertices(annotationsArray, verticeImpugnados);
-
-            //System.out.println("Votos Impugnados: " + votoImpugnado);
-
-            //PRESIDENTE -> votos Blanco
             JSONArray verticeBlanco = sumVertices(vertPresidente, sumValueConfig.getSumValuesBlanco());
 
-            //System.out.println("VERTICE Blancos: " + verticeBlanco.toString());
-
-            String votoBlanco = findTextNearVertices(annotationsArray, verticeBlanco);
-
-            //System.out.println("Votos Blancos: " + votoBlanco);
-
-            //PRESIDENTE -> votos Total
             JSONArray verticeTotales = sumVertices(vertPresidente, sumValueConfig.getSumValuesTotal());
 
-            //System.out.println("VERTICE Totales: " + verticeTotales.toString());
+            String votoUP = findTextNearVertices(annotationsArray, verticeUP);
+            int votoUPNumber = StringToNumberConverter.convert(votoUP);
+
+            String votoLLA = findTextNearVertices(annotationsArray, verticeLLA);
+            int votoLLANumber = StringToNumberConverter.convert(votoLLA);
+
+            String votoNulos = findTextNearVertices(annotationsArray, verticeNulos);
+            int votoNulosNumber = StringToNumberConverter.convert(votoNulos);
+
+            String votoRecurrido = findTextNearVertices(annotationsArray, verticeRecurrido);
+            int votoRecurridoNumber = StringToNumberConverter.convert(votoRecurrido);
+
+            String votoImpugnado = findTextNearVertices(annotationsArray, verticeImpugnados);
+            int votoImpugnadoNumber = StringToNumberConverter.convert(votoImpugnado);
+
+            String votoBlanco = findTextNearVertices(annotationsArray, verticeBlanco);
+            int votoBlancoNumber = StringToNumberConverter.convert(votoBlanco);
+
+            String numeroMesa = findTextNearVertices(annotationsArray, verticeMesaID);
+            int numeroMesaNumber = StringToNumberConverter.convert(numeroMesa);
 
             String votoTotales = findTextNearVertices(annotationsArray, verticeTotales);
-
-            //System.out.println("Votos Totales: " + votoTotales);
-
-            //Obtener el JSON completo de la imagen para ir revisando los vertices de los textos en caso de errores
-            //System.out.println("JSON: " + annotationsArray.toString(2));*/
+            int votoTotalesNumber = StringToNumberConverter.convert(votoTotales);
 
                 mesaInfo.setMesaId(numeroMesa);
             try {
-                mesaInfo.setConteoUp((votoUP));
-                mesaInfo.setConteoLla((votoLLA));
-                mesaInfo.setVotosNulos((votoNulos));
-                mesaInfo.setVotosRecurridos((votoRecurrido));
-                mesaInfo.setVotosImpugnados((votoImpugnado));
-                mesaInfo.setVotosEnBlancos((votoBlanco));
-                mesaInfo.setVotosEnTotal((votoTotales));
+                mesaInfo.setConteoUp((votoUPNumber));
+                mesaInfo.setConteoLla((votoLLANumber));
+                mesaInfo.setVotosNulos((votoNulosNumber));
+                mesaInfo.setVotosRecurridos((votoRecurridoNumber));
+                mesaInfo.setVotosImpugnados((votoImpugnadoNumber));
+                mesaInfo.setVotosEnBlancos((votoBlancoNumber));
+                mesaInfo.setVotosEnTotal((votoTotalesNumber));
                 } catch (NumberFormatException e) {
-                mesaInfo.setConteoUp("-1");
-                mesaInfo.setConteoLla("-1");
-                mesaInfo.setVotosNulos("-1");
-                mesaInfo.setVotosRecurridos("-1");
-                mesaInfo.setVotosImpugnados("-1");
-                mesaInfo.setVotosEnBlancos("-1");
-                mesaInfo.setVotosEnTotal("-1");
+                mesaInfo.setConteoUp(-1);
+                mesaInfo.setConteoLla(-1);
+                mesaInfo.setVotosNulos(-1);
+                mesaInfo.setVotosRecurridos(-1);
+                mesaInfo.setVotosImpugnados(-1);
+                mesaInfo.setVotosEnBlancos(-1);
+                mesaInfo.setVotosEnTotal(-1);
             }
                 if (votoUP+votoLLA+votoNulos+votoRecurrido+votoImpugnado+votoBlanco==votoTotales){
                     mesaInfo.setEsValido(true);

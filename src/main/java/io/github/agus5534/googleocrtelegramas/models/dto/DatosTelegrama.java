@@ -5,13 +5,13 @@ import lombok.Data;
 @Data
 public class DatosTelegrama {
     private String mesaId;
-    private String conteoUp;
-    private String conteoLla;
-    private String votosNulos;
-    private String votosImpugnados;
-    private String votosRecurridos;
-    private String votosEnBlancos;
-    private String votosEnTotal;
+    private int conteoUp;
+    private int conteoLla;
+    private int votosNulos;
+    private int votosImpugnados;
+    private int votosRecurridos;
+    private int votosEnBlancos;
+    private int votosEnTotal;
     private boolean esValido;
 
     public DatosTelegrama() {
