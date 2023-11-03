@@ -1,4 +1,4 @@
-package io.github.agus5534.googleocrtelegramas.utils;
+package io.github.agus5534.googleocrtelegramas.utils.vertexs;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -22,9 +22,11 @@ public class VertexSum {
                 newVertices.put(newVertex);
             }
         } else {
-            System.out.println("The number of vertices and sum values must be the same.");
+            System.out.println("El número de vértices y valores de suma debe ser el mismo.");
         }
 
         return newVertices;
     }
+
+
 }

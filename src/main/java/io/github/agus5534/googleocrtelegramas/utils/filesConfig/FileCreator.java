@@ -1,4 +1,4 @@
-package io.github.agus5534.googleocrtelegramas.utils;
+package io.github.agus5534.googleocrtelegramas.utils.filesConfig;
 
 import java.io.File;
 import java.io.IOException;

@@ -1,13 +1,14 @@
 package io.github.agus5534.googleocrtelegramas;
 
+import io.github.agus5534.googleocrtelegramas.models.dto.DatosTelegrama;
 import io.github.agus5534.googleocrtelegramas.ocr.TextReader;
-import io.github.agus5534.googleocrtelegramas.utils.FileCreator;
+import io.github.agus5534.googleocrtelegramas.utils.filesConfig.FileCreator;
+import org.json.JSONObject;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.net.MalformedURLException;
 import java.util.Arrays;
 import java.util.UUID;
 
@@ -24,7 +25,7 @@ public class TelegramaDownloader {
         }
     }
 
-    public TelegramaDownloader(byte[] telegrama) throws MalformedURLException {
+    public TelegramaDownloader(byte[] telegrama) {
         this.bytes = telegrama;
         this.mesaFolder = new FileCreator(Main.mainFolder.getFile(), UUID.randomUUID() +"/");
 
@@ -48,6 +49,14 @@ public class TelegramaDownloader {
         ImageIO.write(jpegImage, "jpg", telegramaJpg.getFile());
 
         TextReader.read(telegramaJpg.getFile());
+
+        try {
+            DatosTelegrama mesaInfo = TextReader.read(telegramaJpg.getFile());
+            JSONObject mesaInfoJSON = new JSONObject(mesaInfo);
+            System.out.println(mesaInfoJSON.toString(2));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
     }
 
