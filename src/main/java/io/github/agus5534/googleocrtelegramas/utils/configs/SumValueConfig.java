@@ -21,7 +21,7 @@ public class SumValueConfig {
         sumValuesRecurridos = new JSONArray("[{\"x\":-20,\"y\":110},{\"x\":-20,\"y\":123},{\"x\":-25,\"y\":110},{\"x\":-25,\"y\":123}]");
         sumValuesImpugnados = new JSONArray("[{\"x\":-20,\"y\":140},{\"x\":-20,\"y\":153},{\"x\":-25,\"y\":140},{\"x\":-25,\"y\":153}]");
         sumValuesBlanco = new JSONArray("[{\"x\":-20,\"y\":170},{\"x\":-20,\"y\":183},{\"x\":-25,\"y\":170},{\"x\":-25,\"y\":183}]");
-        sumValuesTotal = new JSONArray("[{\"x\":-20,\"y\":200},{\"x\":-20,\"y\":213},{\"x\":-25,\"y\":200},{\"x\":-25,\"y\":213}]");
+        sumValuesTotal = new JSONArray("[{\"x\":-20,\"y\":200},{\"x\":-20,\"y\":213},{\"x\":-5,\"y\":200},{\"x\":-5,\"y\":213}]");
 
     }
 
