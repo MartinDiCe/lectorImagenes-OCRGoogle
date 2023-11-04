@@ -1,24 +1,15 @@
 package io.github.agus5534.googleocrtelegramas;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import io.github.agus5534.googleocrtelegramas.models.Position;
+import io.github.agus5534.googleocrtelegramas.models.dto.DatosTelegrama;
 import io.github.agus5534.googleocrtelegramas.ocr.TextReader;
-import io.github.agus5534.googleocrtelegramas.utils.FileCreator;
-import io.github.agus5534.googleocrtelegramas.utils.KeywordSearchConfig;
+import io.github.agus5534.googleocrtelegramas.utils.filesConfig.FileCreator;
+import org.json.JSONObject;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.awt.image.RenderedImage;
 import java.io.*;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.nio.file.Files;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.UUID;
 
 public class TelegramaDownloader {
@@ -34,13 +25,12 @@ public class TelegramaDownloader {
         }
     }
 
-    public TelegramaDownloader(byte[] telegrama) throws MalformedURLException {
+    public TelegramaDownloader(byte[] telegrama) {
         this.bytes = telegrama;
         this.mesaFolder = new FileCreator(Main.mainFolder.getFile(), UUID.randomUUID() +"/");
 
         Arrays.stream(mesaFolder.getContents()).forEach(File::delete);
 
-        //this.telegrama = new FileCreator(mesaFolder.getFile(), "telegrama.tiff");
     }
 
     public void downloadData() throws Exception {
@@ -58,20 +48,16 @@ public class TelegramaDownloader {
 
         ImageIO.write(jpegImage, "jpg", telegramaJpg.getFile());
 
-        KeywordSearchConfig config = new KeywordSearchConfig("VICEPRESIDENTE", Position.BELOW);
+        TextReader.read(telegramaJpg.getFile());
 
-        TextReader.read(telegramaJpg.getFile(), config);
+        try {
+            DatosTelegrama mesaInfo = TextReader.read(telegramaJpg.getFile());
+            JSONObject mesaInfoJSON = new JSONObject(mesaInfo);
+            System.out.println(mesaInfoJSON.toString(2));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
-    }
-
-
-    private final JsonObject getRootObject(URL url) throws Exception{
-        URLConnection request = url.openConnection();
-        request.connect();
-
-        JsonParser jp = new JsonParser();
-        JsonElement root = jp.parse(new InputStreamReader((InputStream) request.getContent()));
-        return root.getAsJsonObject();
     }
 
 }

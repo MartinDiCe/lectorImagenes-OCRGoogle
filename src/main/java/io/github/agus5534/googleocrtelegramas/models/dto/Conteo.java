@@ -1,4 +1,4 @@
-package io.github.agus5534.googleocrtelegramas.ocr.dto;
+package io.github.agus5534.googleocrtelegramas.models.dto;
 
 public class Conteo {
 

@@ -1,6 +1,6 @@
 package io.github.agus5534.googleocrtelegramas.ocr.telegramas;
 
-import io.github.agus5534.googleocrtelegramas.utils.Polygon;
+import io.github.agus5534.googleocrtelegramas.utils.polygons.Polygon;
 
 import java.util.List;
 

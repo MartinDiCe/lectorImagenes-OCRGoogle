@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "telegramaorc",
+  "private_key_id": "8c0b72063525f6ab214d0343ca0bb90283c062b2",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC5X8JoszO7cEiG\nyTG/WHemHxelR8eCYKRsJiS+yUK3R0FNNCL7kw66f93WfmXN/B9t+K76EkqdPvYW\nXKZ+Xtp8ntBj2uwY8mEq5YcnydtH/FAB1LDpZHQJa1VAxdWE6ub95XFjhO0cIQhN\n4kNMPgRURZKY6KbcnBB7k8CEtj7eLZ7I4MXOri6+NDBs9khSY2GjkTR6EviNZ2NZ\n/akTcn1qTxfkD4ETCLHRz54gZB12AlRYvVQpCYCR4ev1uIwaTH1f+n5KTWXBeMR6\nK0CSloAl8sVrEV1Qxcdxxknrr5/LlLoMO3tydmZwbW7D4gDkQUOh3Vn3gild/LyI\nYk93ZuG/AgMBAAECggEAA1BpSwfmeokPsuExSNN4aCQ8KadL3ifY01onOVtNxwsO\nFCbvd9dG4cyxbElG4VTgQaNlisZS8SwT/Y2wfafieMHkxd7pw6m+/6OqM+rm8bWF\naf2hyrpnXK0U5sXira/+wIvz6AHotKJejKM+mBlaaHX0oKk1enzhH+R3V6gOcwMO\no1BFHlCyWijsitogunX9VpQkbTID24BqHMNhtgQbKcAqozKScjEeoRC7vIpyIe3m\nT8cXC/TD7J68RuqWuaWHPxCE+ATSJDQjQTdsgx4q+ZpMDfYVHCcxRt0c1n+DwUap\nXgsu4H2FsshPLRHgvFkqcdL04EjfTDZ01eUSXllv0QKBgQDrWwN5cHxyQ4L2zW3j\n5wUAm4d7rd+JYj2E2AUk3A3KI3Z/W+pyVVNbqxdeaAzYec6JciYx1LmkJjkgiWZG\nX/FSXa0f5clEe0YgnDbZwoJ2KFVfO7NWfWi68UPXZHRqq3bYcliv1osirWZNGCd9\nCcu7HQANJEKE3k1RNoOVNFtL9wKBgQDJomVAcQZm3JbaQ4v61PZGZZfi5JNXPXUd\nZQWYYF07gGIWmFcY6oVz+K8wOFZk4Dpwu+WJz80VSjtHmk6QQVQzG/1kryQH/yB6\nWVPL2zfsngBgz9s1BYzzSk+tPfWZUD1ZZjOU/AqKafRHBeGYRPWKx2q65H3bwjvA\n5FpWLF1WeQKBgAqVTiOw1jfBJ2t3s2BTLBtp4v7Bw9KGs2N830ZYCtqzG4oAlRtN\nEPGHUQaywRke6RWvJ16IRUzHVzxKUWoKuGxOwBE2IQXOUUn4HFNQdtNfXu9oXNkf\nzIzTeox9/OorCa4T/j7x89G8YGRJGMV7okioti7hGYimAm4LeIFGGHDjAoGBAIaJ\nJKXqxCq95KmdiDjE/83Y2484lFcRWqNSVHlnUs3wy4HoA7VMRd8rfzjdXkfQlS3D\nMVTSojQiY4tTGjiGXnf7pQcZFSGAyVrZX2AV1Sq8AeSWy9yE55ctbhxZyxWQxF5y\nIti1kxLnv2XkNrIy0OLYTA6HhrKq1tPNibkVwPGBAoGBAJ8nnScM9SpUkC/d7ND2\nNlayG0PamkHtGLC+vQbyJNKYPZZALMAui8MHpkTtwk6nD0RVxtPa+MWhxQA6obuu\nZfUFjMk2k1JoCcMD3RiCICaJSAq5gaUKl0+wp83TKszxtQtNVd3BTSdi6wgpHt2v\nM3sSxoO5TduAba8qK/xu4tGX\n-----END PRIVATE KEY-----\n",
+  "client_email": "telegramaorc-231@telegramaorc.iam.gserviceaccount.com",
+  "client_id": "102251445155593014480",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/telegramaorc-231%40telegramaorc.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
