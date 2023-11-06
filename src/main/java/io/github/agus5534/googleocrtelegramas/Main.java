@@ -1,6 +1,6 @@
 package io.github.agus5534.googleocrtelegramas;
 
-import io.github.agus5534.googleocrtelegramas.utils.filesConfig.FileCreator;
+import io.github.agus5534.googleocrtelegramas.utils.files.FileCreator;
 import io.github.agus5534.googleocrtelegramas.utils.timings.TimingsReport;
 
 import java.io.*;

@@ -1,7 +1,5 @@
 package io.github.agus5534.googleocrtelegramas.ocr;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.cloud.vision.v1.*;
 import com.google.protobuf.ByteString;
 
@@ -12,17 +10,16 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
 
 import io.github.agus5534.googleocrtelegramas.Main;
 import io.github.agus5534.googleocrtelegramas.exceptions.AnnotateImageException;
-import io.github.agus5534.googleocrtelegramas.models.dto.DatosTelegrama;
-import io.github.agus5534.googleocrtelegramas.utils.configs.SumValueConfig;
+import io.github.agus5534.googleocrtelegramas.models.DatosTelegrama;
+import io.github.agus5534.googleocrtelegramas.configs.SumValueConfig;
 import io.github.agus5534.googleocrtelegramas.utils.polygons.Polygon;
 import io.github.agus5534.googleocrtelegramas.utils.texts.StringToNumberConverter;
 import io.github.agus5534.googleocrtelegramas.utils.timings.TimingsReport;
 import io.github.agus5534.googleocrtelegramas.utils.vertexs.VerticesFinder;
-import io.github.agus5534.googleocrtelegramas.utils.filesConfig.JSONFileWriter;
+import io.github.agus5534.googleocrtelegramas.utils.files.JSONFileWriter;
 import org.json.JSONArray;
 import org.json.JSONObject;
 

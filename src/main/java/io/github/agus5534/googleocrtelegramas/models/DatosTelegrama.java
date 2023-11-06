@@ -1,4 +1,4 @@
-package io.github.agus5534.googleocrtelegramas.models.dto;
+package io.github.agus5534.googleocrtelegramas.models;
 
 import lombok.Data;
 
