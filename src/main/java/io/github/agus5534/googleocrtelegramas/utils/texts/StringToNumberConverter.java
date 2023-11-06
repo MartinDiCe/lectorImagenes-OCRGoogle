@@ -26,7 +26,7 @@ public class StringToNumberConverter {
                     result.append('2');
                     break;
                 case 'e':
-                    result.append('9');
+                    result.append('6');
                     break;
                 case 'a':
                     result.append('4');
@@ -42,11 +42,10 @@ public class StringToNumberConverter {
                     break;
                 case '|':
                 case '/':
-                case '\\':
                     result.append('1');
                     break;
                 case 'u':
-                    result.append('0');
+                    result.append('4');
                     break;
                 case 'h':
                     result.append('4');
@@ -72,8 +71,14 @@ public class StringToNumberConverter {
                 case 'y':
                     result.append('4');
                     break;
+                case 'q':
+                    result.append('9');
+                    break;
+                case 'B':
+                    result.append("13");
+                    break;
                 default:
-                    result.append('1');
+                    result.append("-1");
                     break;
             }
         }

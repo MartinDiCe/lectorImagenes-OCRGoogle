@@ -228,8 +228,7 @@ public class TextReader {
                 mesaInfo.setVotosEnBlancos(-1);
                 mesaInfo.setVotosEnTotal(-1);
             }
-            mesaInfo.setEsValido((votoUP + votoLLA + votoNulos + votoRecurrido + votoImpugnado + votoBlanco).equals(votoTotales));
-
+            mesaInfo.setEsValido((votoUPNumber + votoLLANumber + votoNulosNumber + votoRecurridoNumber + votoImpugnadoNumber + votoBlancoNumber) == votoTotalesNumber);
             } catch (AnnotateImageException e) {
                 throw new RuntimeException(e);
             }
