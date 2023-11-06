@@ -3,6 +3,7 @@ package io.github.agus5534.googleocrtelegramas;
 import io.github.agus5534.googleocrtelegramas.models.dto.DatosTelegrama;
 import io.github.agus5534.googleocrtelegramas.ocr.TextReader;
 import io.github.agus5534.googleocrtelegramas.utils.filesConfig.FileCreator;
+import io.github.agus5534.googleocrtelegramas.utils.timings.TimingsReport;
 import org.json.JSONObject;
 
 import javax.imageio.ImageIO;
@@ -27,14 +28,13 @@ public class TelegramaDownloader {
 
     public TelegramaDownloader(byte[] telegrama) {
         this.bytes = telegrama;
-        this.mesaFolder = new FileCreator(Main.mainFolder.getFile(), UUID.randomUUID() +"/");
+        this.mesaFolder = new FileCreator(Main.mainFolder.getFile(), UUID.randomUUID() +"/", true);
 
         Arrays.stream(mesaFolder.getContents()).forEach(File::delete);
 
     }
 
     public void downloadData() throws Exception {
-
 
         FileCreator telegramaJpg = new FileCreator(mesaFolder.getFile(), "telegrama-jpg.jpg");
         BufferedImage tiffImage = ImageIO.read(new ByteArrayInputStream(bytes));
@@ -48,12 +48,16 @@ public class TelegramaDownloader {
 
         ImageIO.write(jpegImage, "jpg", telegramaJpg.getFile());
 
-        TextReader.read(telegramaJpg.getFile());
+        TimingsReport.report("Creado .jpg del telegrama");
 
         try {
             DatosTelegrama mesaInfo = TextReader.read(telegramaJpg.getFile());
             JSONObject mesaInfoJSON = new JSONObject(mesaInfo);
+
+            TimingsReport.report("JSONObject construido");
+
             System.out.println(mesaInfoJSON.toString(2));
+
         } catch (IOException e) {
             e.printStackTrace();
         }

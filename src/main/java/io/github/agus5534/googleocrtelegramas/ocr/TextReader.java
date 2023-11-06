@@ -9,13 +9,18 @@ import com.google.protobuf.ByteString;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
+import io.github.agus5534.googleocrtelegramas.Main;
 import io.github.agus5534.googleocrtelegramas.exceptions.AnnotateImageException;
 import io.github.agus5534.googleocrtelegramas.models.dto.DatosTelegrama;
 import io.github.agus5534.googleocrtelegramas.utils.configs.SumValueConfig;
+import io.github.agus5534.googleocrtelegramas.utils.polygons.Polygon;
 import io.github.agus5534.googleocrtelegramas.utils.texts.StringToNumberConverter;
+import io.github.agus5534.googleocrtelegramas.utils.timings.TimingsReport;
 import io.github.agus5534.googleocrtelegramas.utils.vertexs.VerticesFinder;
 import io.github.agus5534.googleocrtelegramas.utils.filesConfig.JSONFileWriter;
 import org.json.JSONArray;
@@ -41,6 +46,9 @@ public class TextReader {
                     .addFeatures(feat)
                     .setImage(img)
                     .build();
+
+            TimingsReport.report("Request enviado");
+
             BatchAnnotateImagesResponse response = client.batchAnnotateImages(Arrays.asList(request));
             List<AnnotateImageResponse> responses = response.getResponsesList();
 
@@ -50,11 +58,15 @@ public class TextReader {
             String previousText = "";
             boolean isFirstSection = true;
 
+            Map<String, List<Vertex>> stringListMap = new HashMap<>();
+
             for (AnnotateImageResponse res : responses) {
                 if (res.hasError()) {
                     String errorMessage = "Error: " + res.getError().getMessage();
                     throw new AnnotateImageException(errorMessage);
                 }
+
+                TimingsReport.report("Respuesta obtenida");
 
                 for (EntityAnnotation annotation : res.getTextAnnotationsList()) {
                     String text = annotation.getDescription();
@@ -74,6 +86,20 @@ public class TextReader {
                     JSONArray verticesArray = new JSONArray();
                     List<JSONObject> vertexList = new ArrayList<>();
 
+
+                    Map<String, Integer> repeat = new HashMap<>();
+
+                    if (stringListMap.containsKey(text)) {
+                        var repeatCount = repeat.getOrDefault(text, 1);
+
+                        stringListMap.put(text + " (Repetido: "+(repeatCount+1)+")", boundingPoly.getVerticesList()); // TODO SET APARICION N°X
+
+                        repeat.replace(text, repeatCount+1);
+                    } else {
+                        stringListMap.put(text, boundingPoly.getVerticesList());
+                    }
+
+
                     for (Vertex vertex : boundingPoly.getVerticesList()) {
                         JSONObject vertexObject = new JSONObject();
                         vertexObject.put("x", vertex.getX());
@@ -82,6 +108,37 @@ public class TextReader {
                     }
 
                     vertexList.sort(Comparator.comparingInt(o -> o.getInt("x")));
+
+
+                    var map = new HashMap<String, List<Polygon>>();
+
+                    stringListMap.forEach((s, vertices) -> {
+                        List<Polygon> pol = new ArrayList<>();
+
+                        vertices.forEach(v -> pol.add(new Polygon(v.getX(), v.getY())));
+
+                        map.put(s.replaceAll("\n", "   "), pol);
+                    });
+
+                    List<Map.Entry<String, List<Polygon>>> map2 = new ArrayList<>(map.entrySet());
+                    map2.sort(Map.Entry.comparingByValue(comparator()));
+
+                    StringBuilder s = new StringBuilder();
+
+                    map2.forEach(stringListEntry -> {
+                        var textEntry = stringListEntry.getKey();
+                        var listValue = stringListEntry.getValue();
+
+                        s.append("TEXTO: ").append(textEntry).append("\n");
+
+                        listValue.forEach(polygon -> {
+                            s.append("      - X: ").append(polygon.x()).append(" Y: ").append(polygon.y()).append("\n");
+                        });
+
+                        s.append("\n");
+                    });
+
+                    Files.write(Main.sortedPolygons.getFile().toPath(), s.toString().getBytes());
 
                     for (JSONObject vertexObject : vertexList) {
                         verticesArray.put(vertexObject);
@@ -104,6 +161,9 @@ public class TextReader {
             String nombreJSONaGuardar = "estructura_" + fechaHora + ".json";
 
             JSONFileWriter jsonFileWriter = new JSONFileWriter(mainFolder);
+
+            TimingsReport.report("Creado archivo .json");
+
             try {
                 jsonFileWriter.writeJSON(annotationsArray, nombreJSONaGuardar);
             } catch (IOException e) {
@@ -171,16 +231,39 @@ public class TextReader {
                 mesaInfo.setVotosEnBlancos(-1);
                 mesaInfo.setVotosEnTotal(-1);
             }
-                if (votoUP+votoLLA+votoNulos+votoRecurrido+votoImpugnado+votoBlanco==votoTotales){
-                    mesaInfo.setEsValido(true);
-                } else {
-                    mesaInfo.setEsValido(false);
-                }
+            mesaInfo.setEsValido((votoUP + votoLLA + votoNulos + votoRecurrido + votoImpugnado + votoBlanco).equals(votoTotales));
 
             } catch (AnnotateImageException e) {
                 throw new RuntimeException(e);
             }
 
-            return mesaInfo;
+        TimingsReport.report("JSON cargado con datos");
+
+        return mesaInfo;
         }
+
+    public static Comparator<List<Polygon>> comparator() {
+        return ((o1, o2) -> {
+            Integer pol1R = 0;
+            Integer pol2R = 0;
+
+            for(int i = 0; i < o1.size() ; i++) {
+                var res = o1.get(0).y().compareTo(o2.get(0).y()) == 0 ? o1.get(0).x().compareTo(o2.get(0).x()) : o1.get(0).y().compareTo(o2.get(0).y());
+
+                if(res == 0) {
+                    pol1R++;
+                    pol2R++;
+                }
+
+                if(res == 1) {
+                    pol1R++;
+                } else {
+                    pol2R++;
+                }
+            }
+
+            return pol1R.compareTo(pol2R);
+        });
+    }
+
 }
