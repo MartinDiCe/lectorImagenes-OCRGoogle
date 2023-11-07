@@ -1,4 +1,4 @@
-package io.github.agus5534.googleocrtelegramas.utils;
+package io.github.agus5534.googleocrtelegramas.utils.files;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,7 +12,7 @@ public class FileCreator {
 
     private List<FileCreator> parentFiles;
 
-    public FileCreator(File path, String name) {
+    public FileCreator(File path, String name, boolean deleteOnExit) {
         this.name = name;
         file = new File(path + "/" + name);
         parentFiles = new ArrayList<>();
@@ -22,6 +22,13 @@ public class FileCreator {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
+        if(deleteOnExit) {
+            file.deleteOnExit();
+        }
+    }
+    public FileCreator(File path, String name) {
+        this(path, name, false);
     }
 
     private void init() throws IOException {

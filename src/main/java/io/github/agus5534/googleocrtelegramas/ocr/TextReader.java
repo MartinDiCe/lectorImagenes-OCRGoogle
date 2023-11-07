@@ -2,120 +2,265 @@ package io.github.agus5534.googleocrtelegramas.ocr;
 
 import com.google.cloud.vision.v1.*;
 import com.google.protobuf.ByteString;
-import io.github.agus5534.googleocrtelegramas.models.Position;
-import io.github.agus5534.googleocrtelegramas.utils.KeywordSearchConfig;
-import io.github.agus5534.googleocrtelegramas.utils.PolygonUtils;
+
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.nio.file.Files;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
+import io.github.agus5534.googleocrtelegramas.Main;
+import io.github.agus5534.googleocrtelegramas.exceptions.AnnotateImageException;
+import io.github.agus5534.googleocrtelegramas.models.DatosTelegrama;
+import io.github.agus5534.googleocrtelegramas.configs.SumValueConfig;
+import io.github.agus5534.googleocrtelegramas.utils.polygons.Polygon;
+import io.github.agus5534.googleocrtelegramas.utils.texts.StringToNumberConverter;
+import io.github.agus5534.googleocrtelegramas.utils.texts.TextConcatenator;
+import io.github.agus5534.googleocrtelegramas.utils.timings.TimingsReport;
+import io.github.agus5534.googleocrtelegramas.utils.vertexs.VerticesFinder;
+import io.github.agus5534.googleocrtelegramas.utils.files.JSONFileWriter;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+
+import static io.github.agus5534.googleocrtelegramas.Main.mainFolder;
+import static io.github.agus5534.googleocrtelegramas.utils.texts.TextSearcher.findTextNearVertices;
+import static io.github.agus5534.googleocrtelegramas.utils.vertexs.VertexSum.sumVertices;
 
 public class TextReader {
+    public static DatosTelegrama read(File tiff) throws IOException {
 
-    public static void read(File tiff, KeywordSearchConfig config) throws IOException {
-        List<AnnotateImageRequest> requests = new ArrayList<>();
+        DatosTelegrama mesaInfo = new DatosTelegrama();
+        SumValueConfig sumValueConfig = new SumValueConfig();
         ByteString imgBytes = ByteString.readFrom(new FileInputStream(tiff));
 
         Image img = Image.newBuilder().setContent(imgBytes).build();
         Feature feat = Feature.newBuilder().setType(Feature.Type.TEXT_DETECTION).build();
-        AnnotateImageRequest request = AnnotateImageRequest.newBuilder().addFeatures(feat).setImage(img).build();
-        requests.add(request);
 
         try (ImageAnnotatorClient client = ImageAnnotatorClient.create()) {
-            BatchAnnotateImagesResponse response = client.batchAnnotateImages(requests);
+            AnnotateImageRequest request = AnnotateImageRequest.newBuilder()
+                    .addFeatures(feat)
+                    .setImage(img)
+                    .build();
+
+            TimingsReport.report("Request enviado");
+
+            BatchAnnotateImagesResponse response = client.batchAnnotateImages(List.of(request));
             List<AnnotateImageResponse> responses = response.getResponsesList();
 
-            String keyword = config.getKeyword();
-            BoundingPoly keywordPosition = null;
-            BoundingPoly searchPosition = null;
+            JSONArray annotationsArray = new JSONArray();
+
+            int currentRightX = 0;
+            boolean isFirstSection = true;
+
+            Map<String, List<Vertex>> stringListMap = new HashMap<>();
 
             for (AnnotateImageResponse res : responses) {
                 if (res.hasError()) {
-                    System.out.format("Error: %s%n", res.getError().getMessage());
-                    return;
+                    String errorMessage = "Error: " + res.getError().getMessage();
+                    throw new AnnotateImageException(errorMessage);
                 }
+
+                TimingsReport.report("Respuesta obtenida");
 
                 for (EntityAnnotation annotation : res.getTextAnnotationsList()) {
                     String text = annotation.getDescription();
                     BoundingPoly boundingPoly = annotation.getBoundingPoly();
+                    Vertex rightBottom = boundingPoly.getVertices(2);
 
-                    if (text.contains(keyword)) {
-                        keywordPosition = boundingPoly;
-                    } else if (keywordPosition != null) {
-                        // Determina la posición según la configuración
-                        if (config.getSearchPosition() == Position.RIGHT) {
-                            if (PolygonUtils.isRightOf(boundingPoly, keywordPosition)) {
-                                searchPosition = boundingPoly;
-                                break;
-                            }
-                        } else if (config.getSearchPosition() == Position.LEFT) {
-                            if (PolygonUtils.isLeftOf(boundingPoly, keywordPosition)) {
-                                searchPosition = boundingPoly;
-                                break;
-                            }
-                        } else if (config.getSearchPosition() == Position.ABOVE) {
-                            if (PolygonUtils.isAbove(boundingPoly, keywordPosition)) {
-                                searchPosition = boundingPoly;
-                                break;
-                            }
-                        } else if (config.getSearchPosition() == Position.BELOW) {
-                            if (PolygonUtils.isBelow(boundingPoly, keywordPosition)) {
-                                searchPosition = boundingPoly;
-                                break;
-                            }
-                        }
+                    if (!isFirstSection && rightBottom.getX() < currentRightX) {
+
+                        int lastIndex = annotationsArray.length() - 1;
+                        JSONObject lastSection = annotationsArray.getJSONObject(lastIndex);
+                        lastSection.put("text", lastSection.getString("text"));
                     }
+
+                    JSONObject annotationObject = new JSONObject();
+                    annotationObject.put("text", text);
+
+                    JSONArray verticesArray = new JSONArray();
+                    List<JSONObject> vertexList = new ArrayList<>();
+
+
+                    Map<String, Integer> repeat = new HashMap<>();
+
+                    if (stringListMap.containsKey(text)) {
+                        var repeatCount = repeat.getOrDefault(text, 1);
+
+                        stringListMap.put(text + " (Repetido: "+(repeatCount+1)+")", boundingPoly.getVerticesList()); // TODO SET APARICION N°X
+
+                        repeat.replace(text, repeatCount+1);
+                    } else {
+                        stringListMap.put(text, boundingPoly.getVerticesList());
+                    }
+
+
+                    for (Vertex vertex : boundingPoly.getVerticesList()) {
+                        JSONObject vertexObject = new JSONObject();
+                        vertexObject.put("x", vertex.getX());
+                        vertexObject.put("y", vertex.getY());
+                        vertexList.add(vertexObject);
+                    }
+
+                    vertexList.sort(Comparator.comparingInt(o -> o.getInt("x")));
+
+
+                    var map = new HashMap<String, List<Polygon>>();
+
+                    stringListMap.forEach((s, vertices) -> {
+                        List<Polygon> pol = new ArrayList<>();
+
+                        vertices.forEach(v -> pol.add(new Polygon(v.getX(), v.getY())));
+
+                        map.put(s.replaceAll("\n", "   "), pol);
+                    });
+
+                    List<Map.Entry<String, List<Polygon>>> map2 = new ArrayList<>(map.entrySet());
+                    map2.sort(Map.Entry.comparingByValue(comparator()));
+
+                    StringBuilder s = new StringBuilder();
+
+                    map2.forEach(stringListEntry -> {
+                        var textEntry = stringListEntry.getKey();
+                        var listValue = stringListEntry.getValue();
+
+                        s.append("TEXTO: ").append(textEntry).append("\n");
+
+                        listValue.forEach(polygon -> s.append("      - X: ").append(polygon.x()).append(" Y: ").append(polygon.y()).append("\n"));
+
+                        s.append("\n");
+                    });
+
+                    Files.write(Main.sortedPolygons.getFile().toPath(), s.toString().getBytes());
+
+                    for (JSONObject vertexObject : vertexList) {
+                        verticesArray.put(vertexObject);
+                    }
+
+                    annotationObject.put("vertices", verticesArray);
+
+                    annotationsArray.put(annotationObject);
+
+                    currentRightX = rightBottom.getX();
+                    isFirstSection = false;
                 }
             }
 
-            AnnotateImageResponse res = null;
 
-            for (AnnotateImageResponse resp : responses) {
-                res = resp;
-                if (resp.hasError()) {
-                    System.out.format("Error: %s%n", resp.getError().getMessage());
-                    return;
-                }
+            annotationsArray = TextConcatenator.concatenateText(annotationsArray, 10, 4);
+            //System.out.println("Clase concatenadora: " + concatenatedAnnotationsArray.toString(2));
+
+            Date date = new Date();
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
+            String fechaHora = dateFormat.format(date);
+
+            String nombreJSONaGuardar = "estructura_" + fechaHora + ".json";
+
+            JSONFileWriter jsonFileWriter = new JSONFileWriter(mainFolder);
+
+            TimingsReport.report("Creado archivo .json");
+
+            try {
+                jsonFileWriter.writeJSON(annotationsArray, nombreJSONaGuardar);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
 
-            if (searchPosition != null) {
-                System.out.println("Keyword: " + config.getKeyword());
-                System.out.println("Posición de búsqueda: " + config.getSearchPosition());
+            JSONArray vertMesa = VerticesFinder.findVertices(annotationsArray, "MESA",":");
 
-                PolygonUtils.showPolygon(keywordPosition);
+            JSONArray verticeMesaID = sumVertices(vertMesa, sumValueConfig.getSumValuesMesa());
 
-                if (res != null) {
-                    for (EntityAnnotation annotation : res.getTextAnnotationsList()) {
-                        if (PolygonUtils.arePolygonsEqual(annotation.getBoundingPoly(), searchPosition)) {
-                            String textInSearchPosition = annotation.getDescription();
-                            System.out.println("Texto dentro del polígono: " + textInSearchPosition);
+            JSONArray vertPresidente = VerticesFinder.findVertices(annotationsArray, "PRESIDENTE","VICEPRESIDENTE");
 
-                            PolygonUtils.showPolygon(searchPosition);
+            JSONArray verticeUP = sumVertices(vertPresidente, sumValueConfig.getSumValuesUP());
 
-                            /*Busqueda de todos los strings
-                            for (EntityAnnotation annotations : res.getTextAnnotationsList()) {
-                                String text = annotations.getDescription();
-                                BoundingPoly boundingPoly = annotations.getBoundingPoly();
+            JSONArray verticeLLA = sumVertices(vertPresidente, sumValueConfig.getSumValuesLLA());
 
-                                PolygonUtils.showPolygon(boundingPoly);
-                            }*/
+            JSONArray verticeNulos = sumVertices(vertPresidente, sumValueConfig.getSumValuesNulos());
 
-                        }
-                    }
-                } else {
-                    System.out.println("No se pudo obtener el texto dentro del polígono.");
+            JSONArray verticeRecurrido = sumVertices(vertPresidente, sumValueConfig.getSumValuesRecurridos());
 
-                    PolygonUtils.showPolygon(searchPosition);
+            JSONArray verticeImpugnados = sumVertices(vertPresidente, sumValueConfig.getSumValuesImpugnados());
 
-                    }
-            } else {
-                System.out.println("La posición deseada no se encontró en la imagen.");
+            JSONArray verticeBlanco = sumVertices(vertPresidente, sumValueConfig.getSumValuesBlanco());
+
+            JSONArray verticeTotales = sumVertices(vertPresidente, sumValueConfig.getSumValuesTotal());
+
+            String votoUP = findTextNearVertices(annotationsArray, verticeUP);
+            int votoUPNumber = StringToNumberConverter.convert(votoUP);
+
+            String votoLLA = findTextNearVertices(annotationsArray, verticeLLA);
+            int votoLLANumber = StringToNumberConverter.convert(votoLLA);
+
+            String votoNulos = findTextNearVertices(annotationsArray, verticeNulos);
+            int votoNulosNumber = StringToNumberConverter.convert(votoNulos);
+
+            String votoRecurrido = findTextNearVertices(annotationsArray, verticeRecurrido);
+            int votoRecurridoNumber = StringToNumberConverter.convert(votoRecurrido);
+
+            String votoImpugnado = findTextNearVertices(annotationsArray, verticeImpugnados);
+            int votoImpugnadoNumber = StringToNumberConverter.convert(votoImpugnado);
+
+            String votoBlanco = findTextNearVertices(annotationsArray, verticeBlanco);
+            int votoBlancoNumber = StringToNumberConverter.convert(votoBlanco);
+
+            String numeroMesa = findTextNearVertices(annotationsArray, verticeMesaID);
+
+            String votoTotales = findTextNearVertices(annotationsArray, verticeTotales);
+            int votoTotalesNumber = StringToNumberConverter.convert(votoTotales);
+
+                mesaInfo.setMesaId(numeroMesa);
+            try {
+                mesaInfo.setConteoUp((votoUPNumber));
+                mesaInfo.setConteoLla((votoLLANumber));
+                mesaInfo.setVotosNulos((votoNulosNumber));
+                mesaInfo.setVotosRecurridos((votoRecurridoNumber));
+                mesaInfo.setVotosImpugnados((votoImpugnadoNumber));
+                mesaInfo.setVotosEnBlancos((votoBlancoNumber));
+                mesaInfo.setVotosEnTotal((votoTotalesNumber));
+                } catch (NumberFormatException e) {
+                mesaInfo.setConteoUp(-1);
+                mesaInfo.setConteoLla(-1);
+                mesaInfo.setVotosNulos(-1);
+                mesaInfo.setVotosRecurridos(-1);
+                mesaInfo.setVotosImpugnados(-1);
+                mesaInfo.setVotosEnBlancos(-1);
+                mesaInfo.setVotosEnTotal(-1);
             }
+            mesaInfo.setEsValido((votoUPNumber + votoLLANumber + votoNulosNumber + votoRecurridoNumber + votoImpugnadoNumber + votoBlancoNumber) == votoTotalesNumber);
+            } catch (AnnotateImageException e) {
+                throw new RuntimeException(e);
+            }
+
+        TimingsReport.report("JSON cargado con datos");
+
+        return mesaInfo;
         }
+
+    public static Comparator<List<Polygon>> comparator() {
+        return ((o1, o2) -> {
+            Integer pol1R = 0;
+            Integer pol2R = 0;
+
+            for(int i = 0; i < o1.size() ; i++) {
+                var res = o1.get(0).y().compareTo(o2.get(0).y()) == 0 ? o1.get(0).x().compareTo(o2.get(0).x()) : o1.get(0).y().compareTo(o2.get(0).y());
+
+                if(res == 0) {
+                    pol1R++;
+                    pol2R++;
+                }
+
+                if(res == 1) {
+                    pol1R++;
+                } else {
+                    pol2R++;
+                }
+            }
+
+            return pol1R.compareTo(pol2R);
+        });
     }
-
-
 
 }
