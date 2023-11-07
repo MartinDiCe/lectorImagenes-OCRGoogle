@@ -13,34 +13,9 @@ public class TextSearcher {
             JSONArray vertices = annotation.getJSONArray("vertices");
             String text = annotation.getString("text");
 
-            boolean isNear = true;
-            double distance = 0;
+            double distance = calculateDistance(vertices, targetVertices);
 
-            for (int j = 0; j < targetVertices.length(); j++) {
-                JSONObject targetVertex = targetVertices.getJSONObject(j);
-                boolean found = false;
-
-                for (int k = 0; k < vertices.length(); k++) {
-                    JSONObject vertex = vertices.getJSONObject(k);
-                    int xDiff = Math.abs(vertex.getInt("x") - targetVertex.getInt("x"));
-                    int yDiff = Math.abs(vertex.getInt("y") - targetVertex.getInt("y"));
-                    distance += Math.sqrt(xDiff * xDiff + yDiff * yDiff);
-
-                    if (xDiff <= 10 && yDiff <= 10) {
-                        found = true;
-                        break;
-                    }
-                }
-
-                if (!found) {
-                    isNear = false;
-                    break;
-                }
-            }
-
-            if (isNear) {
-                return text;
-            } else if (distance < nearestDistance) {
+            if (distance < nearestDistance) {
                 nearestText = text;
                 nearestDistance = distance;
             }
@@ -51,5 +26,24 @@ public class TextSearcher {
         } else {
             return "-1";
         }
+    }
+
+    private static double calculateDistance(JSONArray vertices1, JSONArray vertices2) {
+        double distance = 0;
+
+        for (int i = 0; i < vertices1.length(); i++) {
+            JSONObject vertex1 = vertices1.getJSONObject(i);
+
+            for (int j = 0; j < vertices2.length(); j++) {
+                JSONObject vertex2 = vertices2.getJSONObject(j);
+
+                int xDiff = Math.abs(vertex1.getInt("x") - vertex2.getInt("x"));
+                int yDiff = Math.abs(vertex1.getInt("y") - vertex2.getInt("y"));
+                double vertexDistance = Math.sqrt(xDiff * xDiff + yDiff * yDiff);
+                distance += vertexDistance;
+            }
+        }
+
+        return distance;
     }
 }
