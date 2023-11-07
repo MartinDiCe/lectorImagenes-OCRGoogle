@@ -7,13 +7,12 @@ public class StringToNumberConverter {
             return -1;
         }
 
-        try {
+        if (isNumeric(value)) {
             return Integer.parseInt(value);
-        } catch (NumberFormatException e) {
+        } else {
             return customStringToNumber(value);
         }
     }
-
     private static int customStringToNumber(String value) {
         String lowerCaseValue = value.toLowerCase();
         StringBuilder result = new StringBuilder();
@@ -44,7 +43,7 @@ public class StringToNumberConverter {
                 case 'B':
                     result.append("13");
                     break;
-                case '?', '\u0E32':
+                case '?', '\u0E32', '\u3131':
                     result.append('7');
                     break;
 
@@ -56,4 +55,14 @@ public class StringToNumberConverter {
 
         return Integer.parseInt(result.toString());
     }
+
+    private static boolean isNumeric(String text) {
+        try {
+            Integer.parseInt(text);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
 }

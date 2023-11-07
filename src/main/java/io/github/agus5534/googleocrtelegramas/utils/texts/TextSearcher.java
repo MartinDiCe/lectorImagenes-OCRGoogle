@@ -3,6 +3,8 @@ package io.github.agus5534.googleocrtelegramas.utils.texts;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.util.Objects;
+
 public class TextSearcher {
     public static String findTextNearVertices(JSONArray textData, JSONArray targetVertices) {
         String nearestText = null;
@@ -31,11 +33,7 @@ public class TextSearcher {
 
         if (nearestText != null) {
             return nearestText;
-        } else if (nearestNonNumericText != null) {
-            return nearestNonNumericText;
-        } else {
-            return "-1";
-        }
+        } else return Objects.requireNonNullElse(nearestNonNumericText, "-1");
     }
 
     private static double calculateDistance(JSONArray vertices1, JSONArray vertices2) {
