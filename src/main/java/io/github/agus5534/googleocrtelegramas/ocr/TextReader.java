@@ -17,6 +17,7 @@ import io.github.agus5534.googleocrtelegramas.models.DatosTelegrama;
 import io.github.agus5534.googleocrtelegramas.configs.SumValueConfig;
 import io.github.agus5534.googleocrtelegramas.utils.polygons.Polygon;
 import io.github.agus5534.googleocrtelegramas.utils.texts.StringToNumberConverter;
+import io.github.agus5534.googleocrtelegramas.utils.texts.TextConcatenator;
 import io.github.agus5534.googleocrtelegramas.utils.timings.TimingsReport;
 import io.github.agus5534.googleocrtelegramas.utils.vertexs.VerticesFinder;
 import io.github.agus5534.googleocrtelegramas.utils.files.JSONFileWriter;
@@ -46,13 +47,12 @@ public class TextReader {
 
             TimingsReport.report("Request enviado");
 
-            BatchAnnotateImagesResponse response = client.batchAnnotateImages(Arrays.asList(request));
+            BatchAnnotateImagesResponse response = client.batchAnnotateImages(List.of(request));
             List<AnnotateImageResponse> responses = response.getResponsesList();
 
             JSONArray annotationsArray = new JSONArray();
 
             int currentRightX = 0;
-            String previousText = "";
             boolean isFirstSection = true;
 
             Map<String, List<Vertex>> stringListMap = new HashMap<>();
@@ -128,9 +128,7 @@ public class TextReader {
 
                         s.append("TEXTO: ").append(textEntry).append("\n");
 
-                        listValue.forEach(polygon -> {
-                            s.append("      - X: ").append(polygon.x()).append(" Y: ").append(polygon.y()).append("\n");
-                        });
+                        listValue.forEach(polygon -> s.append("      - X: ").append(polygon.x()).append(" Y: ").append(polygon.y()).append("\n"));
 
                         s.append("\n");
                     });
@@ -146,10 +144,13 @@ public class TextReader {
                     annotationsArray.put(annotationObject);
 
                     currentRightX = rightBottom.getX();
-                    previousText = text;
                     isFirstSection = false;
                 }
             }
+
+
+            annotationsArray = TextConcatenator.concatenateText(annotationsArray, 10, 4);
+            //System.out.println("Clase concatenadora: " + concatenatedAnnotationsArray.toString(2));
 
             Date date = new Date();
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
