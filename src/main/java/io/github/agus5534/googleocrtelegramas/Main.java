@@ -1,6 +1,7 @@
 package io.github.agus5534.googleocrtelegramas;
 
-import io.github.agus5534.googleocrtelegramas.utils.filesConfig.FileCreator;
+import io.github.agus5534.googleocrtelegramas.utils.files.FileCreator;
+import io.github.agus5534.googleocrtelegramas.utils.timings.TimingsReport;
 
 import java.io.*;
 import java.net.URISyntaxException;
@@ -9,8 +10,12 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class Main {
     public static FileCreator mainFolder = new FileCreator(new File(System.getProperty("user.home")), "elecciones-tests/");
+    public static FileCreator sortedPolygons = new FileCreator(mainFolder.getFile(), "sortedPolygons.txt");
     public static void main(String[] args) {
-        String tel = "/telegramas/telegrama-" + ThreadLocalRandom.current().nextInt(1, 49) + ".tif"; // En caso de agregar más, renombrar a telX.tiff y mover el bound de 5 por uno más por cada archivo
+        String tel = "/telegramas/telegrama-"+ ThreadLocalRandom.current().nextInt(1, 49) + ".tif"; // En caso de agregar más, renombrar a telX.tiff y mover el bound de 5 por uno más por cada archivo
+
+        TimingsReport.report("Seleccionado Telegrama");
+
         var finalURL = Main.class.getResource(tel);
 
         byte[] bytes;
@@ -21,7 +26,10 @@ public class Main {
         }
 
         System.out.println("USANDO TELEGRAMA: " + tel);
+        TimingsReport.report("Telegrama convertido a bytes");
 
         TelegramaDownloader.download(bytes);
+
+        TimingsReport.buildTimingsReport();
     }
 }

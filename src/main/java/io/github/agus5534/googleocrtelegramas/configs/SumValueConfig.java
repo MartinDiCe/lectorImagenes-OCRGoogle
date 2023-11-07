@@ -1,4 +1,4 @@
-package io.github.agus5534.googleocrtelegramas.utils.configs;
+package io.github.agus5534.googleocrtelegramas.configs;
 
 import org.json.JSONArray;
 
