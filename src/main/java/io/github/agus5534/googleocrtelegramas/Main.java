@@ -20,6 +20,7 @@ public class Main {
 
         byte[] bytes;
         try {
+            assert finalURL != null;
             bytes = Files.readAllBytes(new File(finalURL.toURI()).toPath());
         } catch (IOException | URISyntaxException e) {
             throw new RuntimeException("Ha ocurrido un error al buscar los resources, ¿Están bien cargados? ¿Está marcado el directorio como Resources Root?", e);
