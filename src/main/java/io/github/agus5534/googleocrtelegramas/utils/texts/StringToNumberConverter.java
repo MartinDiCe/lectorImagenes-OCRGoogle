@@ -44,9 +44,10 @@ public class StringToNumberConverter {
                 case 'B':
                     result.append("13");
                     break;
-                case '?':
+                case '?', '\u0E32':
                     result.append('7');
                     break;
+
                 default:
                     result.append("-1");
                     break;

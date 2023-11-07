@@ -7,6 +7,7 @@ public class TextSearcher {
     public static String findTextNearVertices(JSONArray textData, JSONArray targetVertices) {
         String nearestText = null;
         double nearestDistance = Double.MAX_VALUE;
+        String nearestNonNumericText = null;
 
         for (int i = 0; i < textData.length(); i++) {
             JSONObject annotation = textData.getJSONObject(i);
@@ -14,6 +15,13 @@ public class TextSearcher {
             String text = annotation.getString("text");
 
             double distance = calculateDistance(vertices, targetVertices);
+
+            if (isNumeric(text) && nearestText == null) {
+                nearestText = text;
+                nearestDistance = distance;
+            } else if (!isNumeric(text) && nearestNonNumericText == null) {
+                nearestNonNumericText = text;
+            }
 
             if (distance < nearestDistance) {
                 nearestText = text;
@@ -23,6 +31,8 @@ public class TextSearcher {
 
         if (nearestText != null) {
             return nearestText;
+        } else if (nearestNonNumericText != null) {
+            return nearestNonNumericText;
         } else {
             return "-1";
         }
@@ -45,5 +55,15 @@ public class TextSearcher {
         }
 
         return distance;
+    }
+
+    private static boolean isNumeric(String text) {
+
+        try {
+            Double.parseDouble(text);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 }
