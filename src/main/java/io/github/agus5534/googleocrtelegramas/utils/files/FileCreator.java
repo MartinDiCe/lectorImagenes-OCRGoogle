@@ -1,5 +1,7 @@
 package io.github.agus5534.googleocrtelegramas.utils.files;
 
+import io.github.agus5534.googleocrtelegramas.Main;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -16,6 +18,8 @@ public class FileCreator {
         this.name = name;
         file = new File(path + "/" + name);
         parentFiles = new ArrayList<>();
+
+        if(!Main.debugMode) { return; }
 
         try {
             this.init();

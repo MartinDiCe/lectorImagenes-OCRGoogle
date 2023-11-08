@@ -1,9 +1,9 @@
-package io.github.agus5534.googleocrtelegramas.utils.vertexs;
+package io.github.agus5534.googleocrtelegramas.utils.polygons.vertexs;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class VerticesFinder {
+public class VertexFinder {
     public static JSONArray findVertices(JSONArray annotationsArray, String keyword1, String keyword2) {
         JSONArray closestVertices1 = null;
         double minDistance = Double.MAX_VALUE;

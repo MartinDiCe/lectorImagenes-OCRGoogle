@@ -1,4 +1,4 @@
-package io.github.agus5534.googleocrtelegramas.utils.vertexs;
+package io.github.agus5534.googleocrtelegramas.utils.polygons.vertexs;
 
 import org.json.JSONArray;
 import org.json.JSONObject;

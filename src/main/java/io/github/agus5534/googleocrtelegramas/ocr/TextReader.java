@@ -4,9 +4,8 @@ import com.google.cloud.vision.v1.*;
 import com.google.protobuf.ByteString;
 
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.awt.image.BufferedImage;
+import java.io.*;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -19,22 +18,28 @@ import io.github.agus5534.googleocrtelegramas.utils.polygons.Polygon;
 import io.github.agus5534.googleocrtelegramas.utils.texts.StringToNumberConverter;
 import io.github.agus5534.googleocrtelegramas.utils.texts.TextConcatenator;
 import io.github.agus5534.googleocrtelegramas.utils.timings.TimingsReport;
-import io.github.agus5534.googleocrtelegramas.utils.vertexs.VerticesFinder;
+import io.github.agus5534.googleocrtelegramas.utils.polygons.vertexs.VertexFinder;
 import io.github.agus5534.googleocrtelegramas.utils.files.JSONFileWriter;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 
+import javax.imageio.ImageIO;
+
 import static io.github.agus5534.googleocrtelegramas.Main.mainFolder;
 import static io.github.agus5534.googleocrtelegramas.utils.texts.TextSearcher.findTextNearVertices;
-import static io.github.agus5534.googleocrtelegramas.utils.vertexs.VertexSum.sumVertices;
+import static io.github.agus5534.googleocrtelegramas.utils.polygons.vertexs.VertexSum.sumVertices;
 
 public class TextReader {
-    public static DatosTelegrama read(File tiff) throws IOException {
+    public static DatosTelegrama read(BufferedImage image) throws IOException {
 
         DatosTelegrama mesaInfo = new DatosTelegrama();
         SumValueConfig sumValueConfig = new SumValueConfig();
-        ByteString imgBytes = ByteString.readFrom(new FileInputStream(tiff));
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ImageIO.write(image, "jpg", baos);
+
+        ByteString imgBytes = ByteString.copyFrom(baos.toByteArray());
 
         Image img = Image.newBuilder().setContent(imgBytes).build();
         Feature feat = Feature.newBuilder().setType(Feature.Type.TEXT_DETECTION).build();
@@ -83,18 +88,20 @@ public class TextReader {
                     JSONArray verticesArray = new JSONArray();
                     List<JSONObject> vertexList = new ArrayList<>();
 
+                    if(Main.debugMode) {
+                        Map<String, Integer> repeat = new HashMap<>();
 
-                    Map<String, Integer> repeat = new HashMap<>();
+                        if (stringListMap.containsKey(text)) {
+                            var repeatCount = repeat.getOrDefault(text, 1);
 
-                    if (stringListMap.containsKey(text)) {
-                        var repeatCount = repeat.getOrDefault(text, 1);
+                            stringListMap.put(text + " (Repetido: "+(repeatCount+1)+")", boundingPoly.getVerticesList()); // TODO SET APARICION N°X
 
-                        stringListMap.put(text + " (Repetido: "+(repeatCount+1)+")", boundingPoly.getVerticesList()); // TODO SET APARICION N°X
-
-                        repeat.replace(text, repeatCount+1);
-                    } else {
-                        stringListMap.put(text, boundingPoly.getVerticesList());
+                            repeat.replace(text, repeatCount+1);
+                        } else {
+                            stringListMap.put(text, boundingPoly.getVerticesList());
+                        }
                     }
+
 
 
                     for (Vertex vertex : boundingPoly.getVerticesList()) {
@@ -109,31 +116,33 @@ public class TextReader {
 
                     var map = new HashMap<String, List<Polygon>>();
 
-                    stringListMap.forEach((s, vertices) -> {
-                        List<Polygon> pol = new ArrayList<>();
+                    if(Main.debugMode) {
+                        stringListMap.forEach((s, vertices) -> {
+                            List<Polygon> pol = new ArrayList<>();
 
-                        vertices.forEach(v -> pol.add(new Polygon(v.getX(), v.getY())));
+                            vertices.forEach(v -> pol.add(new Polygon(v.getX(), v.getY())));
 
-                        map.put(s.replaceAll("\n", "   "), pol);
-                    });
+                            map.put(s.replaceAll("\n", "   "), pol);
+                        });
 
-                    List<Map.Entry<String, List<Polygon>>> map2 = new ArrayList<>(map.entrySet());
-                    map2.sort(Map.Entry.comparingByValue(comparator()));
+                        List<Map.Entry<String, List<Polygon>>> map2 = new ArrayList<>(map.entrySet());
+                        map2.sort(Map.Entry.comparingByValue(comparator()));
 
-                    StringBuilder s = new StringBuilder();
+                        StringBuilder s = new StringBuilder();
 
-                    map2.forEach(stringListEntry -> {
-                        var textEntry = stringListEntry.getKey();
-                        var listValue = stringListEntry.getValue();
+                        map2.forEach(stringListEntry -> {
+                            var textEntry = stringListEntry.getKey();
+                            var listValue = stringListEntry.getValue();
 
-                        s.append("TEXTO: ").append(textEntry).append("\n");
+                            s.append("TEXTO: ").append(textEntry).append("\n");
 
-                        listValue.forEach(polygon -> s.append("      - X: ").append(polygon.x()).append(" Y: ").append(polygon.y()).append("\n"));
+                            listValue.forEach(polygon -> s.append("      - X: ").append(polygon.x()).append(" Y: ").append(polygon.y()).append("\n"));
 
-                        s.append("\n");
-                    });
+                            s.append("\n");
+                        });
 
-                    Files.write(Main.sortedPolygons.getFile().toPath(), s.toString().getBytes());
+                        Files.write(Main.sortedPolygons.getFile().toPath(), s.toString().getBytes());
+                    }
 
                     for (JSONObject vertexObject : vertexList) {
                         verticesArray.put(vertexObject);
@@ -168,11 +177,11 @@ public class TextReader {
                 e.printStackTrace();
             }
 
-            JSONArray vertMesa = VerticesFinder.findVertices(annotationsArray, "MESA",":");
+            JSONArray vertMesa = VertexFinder.findVertices(annotationsArray, "MESA",":");
 
             JSONArray verticeMesaID = sumVertices(vertMesa, sumValueConfig.getSumValuesMesa());
 
-            JSONArray vertPresidente = VerticesFinder.findVertices(annotationsArray, "PRESIDENTE","VICEPRESIDENTE");
+            JSONArray vertPresidente = VertexFinder.findVertices(annotationsArray, "PRESIDENTE","VICEPRESIDENTE");
 
             JSONArray verticeUP = sumVertices(vertPresidente, sumValueConfig.getSumValuesUP());
 
@@ -220,7 +229,7 @@ public class TextReader {
                 mesaInfo.setVotosImpugnados((votoImpugnadoNumber));
                 mesaInfo.setVotosEnBlancos((votoBlancoNumber));
                 mesaInfo.setVotosEnTotal((votoTotalesNumber));
-                } catch (NumberFormatException e) {
+            } catch (NumberFormatException e) {
                 mesaInfo.setConteoUp(-1);
                 mesaInfo.setConteoLla(-1);
                 mesaInfo.setVotosNulos(-1);
