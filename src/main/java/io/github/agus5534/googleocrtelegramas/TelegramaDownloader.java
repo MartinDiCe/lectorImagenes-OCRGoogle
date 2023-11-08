@@ -36,7 +36,6 @@ public class TelegramaDownloader {
 
     public void downloadData() throws Exception {
 
-        FileCreator telegramaJpg = new FileCreator(mesaFolder.getFile(), "telegrama-jpg.jpg");
         BufferedImage tiffImage = ImageIO.read(new ByteArrayInputStream(bytes));
 
         BufferedImage jpegImage = new BufferedImage(
@@ -46,12 +45,10 @@ public class TelegramaDownloader {
 
         jpegImage.createGraphics().drawImage(tiffImage, 0, 0, Color.WHITE, null);
 
-        ImageIO.write(jpegImage, "jpg", telegramaJpg.getFile());
-
         TimingsReport.report("Creado .jpg del telegrama");
 
         try {
-            DatosTelegrama mesaInfo = TextReader.read(telegramaJpg.getFile());
+            DatosTelegrama mesaInfo = TextReader.read(jpegImage);
             JSONObject mesaInfoJSON = new JSONObject(mesaInfo);
 
             TimingsReport.report("JSONObject construido");
